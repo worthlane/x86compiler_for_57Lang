@@ -4,6 +4,7 @@
 
 #include "backend.h"
 #include "stack/stack.h"
+#include "ir.h"
 
 #ifdef  NODE_NAME
 #undef  NODE_NAME

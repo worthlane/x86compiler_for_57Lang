@@ -10,7 +10,6 @@
 
 #ifdef EXIT_IF_ERROR
 #undef EXIT_IF_ERROR
-
 #endif
 #define EXIT_IF_ERROR(error)                do                                                          \
                                             {                                                           \
@@ -23,7 +22,6 @@
 
 #ifdef BREAK_IF_ERROR
 #undef BREAK_IF_ERROR
-
 #endif
 #define BREAK_IF_ERROR(error)                do                                                          \
                                             {                                                           \
@@ -34,7 +32,6 @@
                                             } while(0)
 #ifdef RETURN_IF_ERROR
 #undef RETURN_IF_ERROR
-
 #endif
 #define RETURN_IF_ERROR(error)              do                                                          \
                                             {                                                           \
@@ -46,7 +43,6 @@
 
 #ifdef RETURN_IF_NOT_EQUAL
 #undef RETURN_IF_NOT_EQUAL
-
 #endif
 #define RETURN_IF_NOT_EQUAL(check_err, expected_err, return_err)                            \
                                                                                             \

@@ -33,4 +33,6 @@ int main(const int argc, const char* argv[])
     FILE* out = fopen(BYTES_FILE, "w");
 
     TranslateToAsm(&tree, out, &error);
+
+    TreeDtor(&tree);
 }
