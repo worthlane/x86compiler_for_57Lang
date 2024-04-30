@@ -379,3 +379,112 @@ static void TranslateAssignToAsm(const tree_t* tree, const Node* node, Stack_t* 
 
     PrintWithTabs(out_stream, TABS_AMT, "pop [%d]\n\n", ram_id);
 }
+
+// =====================================================
+
+/*void MoveTreeToIR(const tree_t* tree, ir_t* ir, error_t* error)
+{
+    assert(tree);
+    assert(ir);
+    assert(error);
+
+
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+#define DEF_OP(name, is_char, symb, action, is_calc, asm)   \
+                case Operators::name:                       \
+                    asm
+
+static void TranslateNodeToAsm(const tree_t* tree, ir_t* ir, const Node* node, Stack_t* tables, error_t* error)
+{
+    assert(tree);
+    assert(ir);
+
+    static int ram_spot   = 0;
+    static int label_spot = 0;
+
+    if (node == nullptr)
+        return;
+
+    if (node->type == NodeType::NUM)
+    {
+        PrintWithTabs(out_stream, TABS_AMT, "push %d\n", (int) node->value.val);
+        return;
+    }
+
+    if (node->type == NodeType::VAR)
+    {
+        int ram_id = GetNameRamIdFromStack(tables, NODE_NAME(node));
+        if (ram_id == NO_RAM)
+            error->code = (int) BackendErrors::NON_INIT_VAR;
+
+        PrintWithTabs(out_stream, TABS_AMT, "push [%d]\n", ram_id);
+        return;
+    }
+
+    assert(node->type == NodeType::OP);
+
+    switch (node->value.opt)
+    {
+        #include "common/operations.h"
+
+        case (Operators::NEW_FUNC):
+        {
+            TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
+            TranslateNodeToAsm(tree, node->right, tables, out_stream, error);
+            break;
+        }
+        case (Operators::TYPE):
+        {
+            TranslateNodeToAsm(tree, node->right, tables, out_stream, error);
+            break;
+        }
+        case (Operators::FUNC):
+        {
+            fprintf(out_stream, "\n:%s" LOTS_TABS "%% FUNC START\n", tree->names.list[node->left->value.var].name);
+
+            nametable_t* local = MakeNametable();
+            StackPush(tables, local);
+
+            GetParams(tree, node->left->left, tables, &ram_spot, out_stream);
+
+            TranslateNodeToAsm(tree, node->left->right, tables, out_stream, error);
+            PrintWithTabs(out_stream, TABS_AMT, "ret" LOTS_TABS "%% FUNC END\n\n");
+
+            StackPop(tables);
+
+            break;
+        }
+        case (Operators::FUNC_CALL):
+        {
+            fprintf(out_stream, "\n" LOTS_TABS "%% START OF CALL\n");
+
+            int name_amt = ((nametable_t*) LOCAL_TABLE(tables))->size;
+
+            for (int i = 0; i < name_amt; i++)
+            {
+                int id = LOCAL_TABLE(tables)->list[i].ram_id;
+                PrintWithTabs(out_stream, TABS_AMT, "push [%d]\n", id);
+            }
+
+            TranslateNodeToAsm(tree, node->left->left, tables, out_stream, error);
+            PrintWithTabs(out_stream, TABS_AMT, "call :%s\n", tree->names.list[node->left->value.var].name);
+
+            PrintWithTabs(out_stream, TABS_AMT, "pop rax\n");
+
+            for (int i = 0; i < name_amt; i++)
+            {
+                int id = LOCAL_TABLE(tables)->list[i].ram_id;
+                PrintWithTabs(out_stream, TABS_AMT, "pop [%d]\n", id);
+            }
+
+            PrintWithTabs(out_stream, TABS_AMT, "push rax\n" LOTS_TABS "%% END OF CALL\n");
+            break;
+        }
+    }
+}*/
+
+#undef DEF_OP
+
