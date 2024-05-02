@@ -14,6 +14,44 @@ enum class InstructionCode
 
 #undef DEF_CMD
 
+enum Registers
+{
+    RAX,
+    RBX,
+    RCX,
+    RDX,
+    RBP,
+    RSI,
+    RDI,
+    RSP,
+    R8,
+    R9,
+    R10,
+    R11,
+    R12,
+    R13,
+    R14,
+    R15,
+
+    XMM0,
+    XMM1,
+    XMM2,
+    XMM3,
+    XMM4,
+    XMM5,
+    XMM6,
+    XMM7
+};
+
+enum class ArgumentType
+{
+    NONE = 0,
+
+    VALUE,
+    REGISTER,
+    RAM,
+};
+
 struct instruction_t
 {
     InstructionCode code;
@@ -22,6 +60,12 @@ struct instruction_t
     size_t refer_to;
 
     size_t x86size;
+
+    ArgumentType type1;
+    int          arg1;
+
+    ArgumentType type2;
+    int          arg2;
 };
 
 struct ir_t
@@ -35,8 +79,7 @@ struct ir_t
 ir_t*   IRCtor(const size_t size, error_t* error);
 void    IRDtor(ir_t* ir);
 
-void    IRInsert(ir_t* ir, const InstructionCode code, const bool need_patch,
-                           const size_t refer_to, error_t* error);
+void    IRInsert(ir_t* ir, const instruction_t* instr, error_t* error);
 
 
 

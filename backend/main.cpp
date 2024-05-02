@@ -33,14 +33,6 @@ int main(const int argc, const char* argv[])
 
     DUMP_TREE(&tree);
 
-    FILE* out = fopen(BYTES_FILE, "w");
-    if (!out)
-    {
-        error.code = (int) ERRORS::OPEN_FILE;
-        SetErrorData(&error, "CAN NOT OPEN FILE \"%s\"\n", BYTES_FILE);
-    }
-    EXIT_IF_ERROR(&error);
-
     ir_t* intermediate_rep = IRCtor(IR_SIZE, &error);
     EXIT_IF_ERROR(&error);
 

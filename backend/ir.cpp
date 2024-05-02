@@ -8,6 +8,23 @@ static const size_t MIN_CAPACITY = 128;
 
 static void IRRealloc(ir_t* ir, size_t new_capacity, error_t* error);
 
+static inline int PrintWithTabs(FILE* fp, const size_t tabs_amt, const char *format, ...)
+{
+    for (size_t i = 0; i < tabs_amt; i++)
+    {
+        fprintf(fp, "\t");
+    }
+
+    va_list arg;
+    int done;
+
+    va_start (arg, format);
+    done = vfprintf(fp, format, arg);
+    va_end (arg);
+
+    return done;
+}
+
 // ---------------------------------------------------------------
 
 ir_t* IRCtor(const size_t size, error_t* error)
@@ -76,8 +93,7 @@ static void IRRealloc(ir_t* ir, size_t new_capacity, error_t* error)
 
 // ---------------------------------------------------------------
 
-void IRInsert(ir_t* ir, const InstructionCode code, const bool need_patch,
-                        const size_t refer_to, error_t* error)
+void IRInsert(ir_t* ir, const instruction_t* instr, error_t* error)
 {
     assert(ir);
     assert(error);
@@ -90,11 +106,7 @@ void IRInsert(ir_t* ir, const InstructionCode code, const bool need_patch,
 
     size_t cur_instr = ir->size;
 
-    ir->array[cur_instr].code       = code;
-    ir->array[cur_instr].need_patch = need_patch;
-
-    if (need_patch)
-        ir->array[cur_instr].refer_to = refer_to;
+    ir->array[cur_instr] = *instr;
 
     ir->size++;
 }
