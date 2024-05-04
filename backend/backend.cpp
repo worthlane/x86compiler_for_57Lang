@@ -5,7 +5,7 @@
 #include "backend.h"
 #include "stack/stack.h"
 #include "ir.h"
-#include "labels_table.h"
+#include "list.h"
 
 #ifdef  NODE_NAME
 #undef  NODE_NAME
@@ -29,21 +29,21 @@ static int GetNameRamIdFromStack(const Stack_t* stk, const char* name);
 static int GetNameRamIdFromTable(const nametable_t* nametable, const char* name);
 
 static void TranslateNodeToIR(ir_t* ir, const tree_t* tree, const Node* node,
-                              Stack_t* tables, labels_table_t* labels, int* ram_spot, error_t* error);
+                              Stack_t* tables, list_t* labels, int* ram_spot, error_t* error);
 static void TranslateAssignToIR(ir_t* ir, const tree_t* tree, const Node* node,
-                                Stack_t* tables, labels_table_t* labels, int* ram_spot, error_t* error);
+                                Stack_t* tables, list_t* labels, int* ram_spot, error_t* error);
 static void GetParams(ir_t* ir, const tree_t* tree, const Node* node,
-                      Stack_t* tables, labels_table_t* labels, int* ram_spot);
+                      Stack_t* tables, list_t* labels, int* ram_spot);
 static void TranslateCompareToIR(ir_t* ir, const tree_t* tree, const Node* node, Stack_t* tables,
-                                labels_table_t* labels, int* ram_spot,  const InstructionCode comparator, error_t* error);
+                                list_t* labels, int* ram_spot,  const InstructionCode comparator, error_t* error);
 static void TranslateAndToIR(ir_t* ir, const tree_t* tree, const Node* node, Stack_t* tables,
-                            labels_table_t* labels, int* ram_spot, error_t* error);
+                            list_t* labels, int* ram_spot, error_t* error);
 static void TranslateOrToIR(ir_t* ir, const tree_t* tree, const Node* node, Stack_t* tables,
-                             labels_table_t* labels, int* ram_spot, error_t* error);
+                             list_t* labels, int* ram_spot, error_t* error);
 
 // =====================================================
 
-void MoveTreeToIR(const tree_t* tree, ir_t* ir, labels_table_t* labels, error_t* error)
+void MoveTreeToIR(const tree_t* tree, ir_t* ir, list_t* labels, error_t* error)
 {
     assert(tree);
     assert(ir);
@@ -57,7 +57,7 @@ void MoveTreeToIR(const tree_t* tree, ir_t* ir, labels_table_t* labels, error_t*
 
     instruction_t call = {  .code  = InstructionCode::ID_CALL,
                             .need_patch = true,
-                            .refer_to   = GetElemIndexFromLabelsTable(labels, "_0_")};
+                            .refer_to   = GetElemIndexFromList(labels, "_0_")};
     IRInsert(ir, &call, error);
 
     instruction_t hlt = {.code = InstructionCode::ID_HLT};
@@ -77,7 +77,7 @@ void MoveTreeToIR(const tree_t* tree, ir_t* ir, labels_table_t* labels, error_t*
                     asm
 
 static void TranslateNodeToIR(ir_t* ir, const tree_t* tree, const Node* node,
-                              Stack_t* tables, labels_table_t* labels, int* ram_spot, error_t* error)
+                              Stack_t* tables, list_t* labels, int* ram_spot, error_t* error)
 {
     assert(tree);
     assert(ir);
@@ -128,7 +128,7 @@ static void TranslateNodeToIR(ir_t* ir, const tree_t* tree, const Node* node,
         }
         case (Operators::FUNC):
         {
-            InsertNameInLabelsTable(labels, NODE_NAME(node->left), ir->size); // func start label
+            InsertNameInList(labels, NODE_NAME(node->left), ir->size); // func start label
 
             instruction_t stk_frame_in  = { .code  = InstructionCode::ID_PUSH,
                                             .type1 = ArgumentType::REGISTER,
@@ -175,7 +175,7 @@ static void TranslateNodeToIR(ir_t* ir, const tree_t* tree, const Node* node,
 
             instruction_t call = {  .code  = InstructionCode::ID_CALL,
                                     .need_patch = true,
-                                    .refer_to   = GetElemIndexFromLabelsTable(labels, NODE_NAME(node->left))};
+                                    .refer_to   = GetElemIndexFromList(labels, NODE_NAME(node->left))};
             IRInsert(ir, &call, error);
 
             instruction_t ret_rdi  = { .code  = InstructionCode::ID_POP,
@@ -204,7 +204,7 @@ static void TranslateNodeToIR(ir_t* ir, const tree_t* tree, const Node* node,
 //-----------------------------------------------------------------------------------------------------
 
 static void TranslateAssignToIR(ir_t* ir, const tree_t* tree, const Node* node,
-                                Stack_t* tables, labels_table_t* labels, int* ram_spot, error_t* error)
+                                Stack_t* tables, list_t* labels, int* ram_spot, error_t* error)
 {
     assert(ram_spot);
     assert(tree);
@@ -270,7 +270,7 @@ static int GetNameRamIdFromTable(const nametable_t* nametable, const char* name)
 //-----------------------------------------------------------------------------------------------------
 
 static void GetParams(ir_t* ir, const tree_t* tree, const Node* node,
-                      Stack_t* tables, labels_table_t* labels, int* ram_spot)
+                      Stack_t* tables, list_t* labels, int* ram_spot)
 {
     assert(tree);
     assert(tables);
@@ -314,7 +314,7 @@ static void GetParams(ir_t* ir, const tree_t* tree, const Node* node,
 //-----------------------------------------------------------------------------------------------------
 
 static void TranslateCompareToIR(ir_t* ir, const tree_t* tree, const Node* node, Stack_t* tables,
-                                labels_table_t* labels, int* ram_spot,  const InstructionCode comparator, error_t* error)
+                                list_t* labels, int* ram_spot,  const InstructionCode comparator, error_t* error)
 {
     assert(tables);
     assert(tree);
@@ -370,7 +370,7 @@ static void TranslateCompareToIR(ir_t* ir, const tree_t* tree, const Node* node,
 //-----------------------------------------------------------------------------------------------------
 
 static void TranslateAndToIR(ir_t* ir, const tree_t* tree, const Node* node, Stack_t* tables,
-                            labels_table_t* labels, int* ram_spot, error_t* error)
+                            list_t* labels, int* ram_spot, error_t* error)
 {
     assert(tables);
     assert(tree);
@@ -432,7 +432,7 @@ static void TranslateAndToIR(ir_t* ir, const tree_t* tree, const Node* node, Sta
 //-----------------------------------------------------------------------------------------------------
 
 static void TranslateOrToIR(ir_t* ir, const tree_t* tree, const Node* node, Stack_t* tables,
-                             labels_table_t* labels, int* ram_spot, error_t* error)
+                             list_t* labels, int* ram_spot, error_t* error)
 {
     assert(tables);
     assert(tree);
@@ -526,7 +526,7 @@ static void TranslateOrToIR(ir_t* ir, const tree_t* tree, const Node* node, Stac
 
 // -----------------------------------------------------------
 
-void FillLabelsTable(const tree_t* tree, labels_table_t* labels, error_t* error)
+void FillList(const tree_t* tree, list_t* labels, error_t* error)
 {
     assert(tree);
     assert(error);

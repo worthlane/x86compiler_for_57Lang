@@ -133,7 +133,7 @@ int InsertNameInTable(nametable_t* nametable, const char* name, const TokenType 
     for (int i = 0; i < nametable->size; i++)
     {
         nametable->list[i].is_arg = true; // TODO fix
-        
+
         if (!strncmp(name, nametable->list[i].name, MAX_NAME_LEN))
             return i;
     }
