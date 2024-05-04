@@ -8,7 +8,6 @@
 #include "common/input_and_output.h"
 #include "backend.h"
 #include "ir.h"
-#include "list.h"
 
 static const size_t IR_SIZE = 1012;
 
@@ -34,11 +33,9 @@ int main(const int argc, const char* argv[])
 
     DUMP_TREE(&tree);
 
-    list_t* labels = ListCtor();
+    nametable_t* labels = MakeNametable();
 
-    FillList(&tree, labels, &error);
-
-    DumpList(labels);
+    FillLabelsTable(&tree, labels, &error);
 
     ir_t* intermediate_rep = IRCtor(IR_SIZE, &error);
     EXIT_IF_ERROR(&error);
@@ -47,7 +44,6 @@ int main(const int argc, const char* argv[])
 
     IRDump(stdout, intermediate_rep);
 
-    ListDtor(labels);
     TreeDtor(&tree);
     IRDtor(intermediate_rep);
 }

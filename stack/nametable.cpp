@@ -148,6 +148,46 @@ int InsertNameInTable(nametable_t* nametable, const char* name, const TokenType 
 
 //-----------------------------------------------------------------------------------------------------
 
+int InsertPairInTable(nametable_t* nametable, const char* name, const int index)
+{
+    assert(nametable);
+    assert(nametable->list);
+    assert(name);
+
+    for (int i = 0; i < nametable->size; i++)
+    {
+        if (!strncmp(name, nametable->list[i].name, MAX_NAME_LEN))
+            return i;
+    }
+    char* inserted_name = strndup(name, MAX_NAME_LEN);
+    assert(inserted_name);
+
+    nametable->list[nametable->size].name   = inserted_name;
+    nametable->list[nametable->size].type   = TokenType::NAME;
+    nametable->list[nametable->size].ram_id = index;
+
+    return nametable->size++;
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+int GetValueFromNameTable(nametable_t* nametable, const char* name)
+{
+    assert(nametable);
+    assert(nametable->list);
+    assert(name);
+
+    for (int i = 0; i < nametable->size; i++)
+    {
+        if (!strncmp(name, nametable->list[i].name, MAX_NAME_LEN))
+            return nametable->list[i].ram_id;
+    }
+
+    return UNKNOWN_VAL;
+}
+
+//-----------------------------------------------------------------------------------------------------
+
 #define DEF_OP(name, ...)        \
     case (Operators::name):        \
         fprintf(fp, #name);   \
