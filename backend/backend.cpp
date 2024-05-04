@@ -23,7 +23,6 @@ static const int ARG_RAM_STEP = 16;
 static const int ARG_INIT_RAM = 16;
 
 static int GetNameRamIdFromStack(const Stack_t* stk, const char* name);
-static int GetNameRamIdFromTable(const nametable_t* nametable, const char* name);
 
 static void TranslateNodeToIR(ir_t* ir, const tree_t* tree, const Node* node,
                               Stack_t* tables, nametable_t* labels, int* ram_spot, error_t* error);
@@ -98,7 +97,7 @@ static void TranslateNodeToIR(ir_t* ir, const tree_t* tree, const Node* node,
 
         instruction_t push_ram = {  .code  = InstructionCode::ID_PUSH_XMM,
                                     .type1 = ArgumentType::RAM,
-                                    .arg1  = (int) node->value.val};
+                                    .arg1  = ram_id};
 
         IRInsert(ir, &push_ram, error);
         return;
@@ -154,8 +153,6 @@ static void TranslateNodeToIR(ir_t* ir, const tree_t* tree, const Node* node,
         }
         case (Operators::FUNC_CALL):
         {
-            int name_amt = ((nametable_t*) LOCAL_TABLE(tables))->size;
-
             instruction_t stk_save       = { .code  = InstructionCode::ID_MOV,
                                             .type1 = ArgumentType::REGISTER,
                                             .arg1  = RDI,
@@ -215,12 +212,12 @@ static void TranslateAssignToIR(ir_t* ir, const tree_t* tree, const Node* node,
 
     if (ram_id == UNKNOWN_VAL)
     {
-        int id = InsertNameInTable(LOCAL_TABLE(tables), NODE_NAME(node->left));
+        InsertPairInTable(LOCAL_TABLE(tables), NODE_NAME(node->left), *ram_spot);
 
         ram_id = *ram_spot;
         *ram_spot += RAM_STEP;
 
-        LOCAL_TABLE(tables)->list[id].ram_id = ram_id;
+        //LOCAL_TABLE(tables)->list[id].ram_id = ram_id;
     }
 
     instruction_t pop_ram = {   .code  = InstructionCode::ID_POP_XMM,
@@ -238,27 +235,9 @@ static int GetNameRamIdFromStack(const Stack_t* stk, const char* name)
 
     for (int i = 0; i < stk->size; i++)
     {
-        int id = GetNameRamIdFromTable(stk->data[i], name);
+        int id = GetValueFromNameTable(stk->data[i], name);
         if (id != UNKNOWN_VAL)
             return id;
-    }
-
-    return UNKNOWN_VAL;
-}
-
-//-----------------------------------------------------------------------------------------------------
-
-static int GetNameRamIdFromTable(const nametable_t* nametable, const char* name)
-{
-    assert(nametable);
-    assert(name);
-
-    for (int i = 0; i < nametable->size; i++)
-    {
-        if (!strncmp(name, nametable->list[i].name, MAX_NAME_LEN))
-        {
-            return nametable->list[i].ram_id;
-        }
     }
 
     return UNKNOWN_VAL;
@@ -291,12 +270,12 @@ static void GetParams(ir_t* ir, const tree_t* tree, const Node* node,
 
     if (node->type == NodeType::VAR)
     {
-        int id = InsertNameInTable(LOCAL_TABLE(tables), NODE_NAME(node));
+        InsertPairInTable(LOCAL_TABLE(tables), NODE_NAME(node), *ram_spot);
         int ram_id = *ram_spot;
         *ram_spot += ARG_RAM_STEP;
 
-        LOCAL_TABLE(tables)->list[id].ram_id = ram_id;
-        LOCAL_TABLE(tables)->list[id].is_arg = true;
+        /*LOCAL_TABLE(tables)->list[id].ram_id = ram_id;
+        LOCAL_TABLE(tables)->list[id].is_arg = true;*/
 
         /*instruction_t pop_ram = {   .code  = InstructionCode::ID_POP_XMM,
                                     .type1 = ArgumentType::RAM,
