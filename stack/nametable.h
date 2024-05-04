@@ -85,7 +85,11 @@ void DumpNametable(FILE* fp, const nametable_t* nametable);
 void CopyNametable(const nametable_t* nametable, nametable_t* dest);
 
 int  InsertNameInTable(nametable_t* nametable, const char* name, const TokenType type = TokenType::NAME);
+int  InsertPairInTable(nametable_t* nametable, const char* name, const int index);
 bool FindNameInTable(const nametable_t* nametable, const char* name, bool* exists, bool* is_func);
+int  GetValueFromNameTable(nametable_t* nametable, const char* name);
+
+static const int UNKNOWN_VAL = 1337;
 
 // ======================================================================
 // KEYWORDS
