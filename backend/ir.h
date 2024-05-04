@@ -18,7 +18,7 @@ enum class InstructionCode
 
 enum Registers
 {
-    RAX,
+    RAX = 0,
     RBX,
     RCX,
     RDX,
@@ -42,8 +42,14 @@ enum Registers
     XMM4,
     XMM5,
     XMM6,
-    XMM7
+    XMM7,
+
+    REG_AMT
 };
+
+static const char* REGISTERS_STR[] = {"rax", "rbx", "rcx", "rdx", "rbp", "rsi", "rdi", "rsp",
+                                     "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15",
+                                     "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7"};
 
 enum class ArgumentType
 {
@@ -53,6 +59,8 @@ enum class ArgumentType
     REGISTER,
     RAM,
 };
+
+void DumpArgument(FILE* fp, const ArgumentType type, const int data);
 
 struct instruction_t
 {
@@ -82,6 +90,8 @@ ir_t*   IRCtor(const size_t size, error_t* error);
 void    IRDtor(ir_t* ir);
 
 void    IRInsert(ir_t* ir, const instruction_t* instr, error_t* error);
+
+void IRDump(FILE* fp, ir_t* ir);
 
 
 

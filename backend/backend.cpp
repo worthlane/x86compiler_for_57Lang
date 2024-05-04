@@ -55,17 +55,17 @@ void MoveTreeToIR(const tree_t* tree, ir_t* ir, labels_table_t* labels, error_t*
     nametable_t* global = MakeNametable();
     StackPush(&tables, global);
 
-    instruction_t jmp = {   .code  = InstructionCode::ID_JMP,
+    instruction_t call = {  .code  = InstructionCode::ID_CALL,
                             .need_patch = true,
                             .refer_to   = GetElemIndexFromLabelsTable(labels, "_0_")};
-    IRInsert(ir, &jmp, error);
+    IRInsert(ir, &call, error);
+
+    instruction_t hlt = {.code = InstructionCode::ID_HLT};
+    IRInsert(ir, &hlt, error);
 
     int ram_spot = INIT_RAM;
 
     TranslateNodeToIR(ir, tree, tree->root, &tables, labels, &ram_spot, error);
-
-    instruction_t hlt = {.code = InstructionCode::ID_HLT};
-    IRInsert(ir, &hlt, error);
 
     StackDtor(&tables);
 }
@@ -178,11 +178,6 @@ static void TranslateNodeToIR(ir_t* ir, const tree_t* tree, const Node* node,
                                     .refer_to   = GetElemIndexFromLabelsTable(labels, NODE_NAME(node->left))};
             IRInsert(ir, &call, error);
 
-            instruction_t pop_reg = {   .code  = InstructionCode::ID_POP_XMM,
-                                        .type1 = ArgumentType::REGISTER,
-                                        .arg1  = XMM0};
-            IRInsert(ir, &pop_reg, error);
-
             instruction_t ret_rdi  = { .code  = InstructionCode::ID_POP,
                                             .type1 = ArgumentType::REGISTER,
                                             .arg1  = RDI};
@@ -193,11 +188,11 @@ static void TranslateNodeToIR(ir_t* ir, const tree_t* tree, const Node* node,
                                             .arg1  = RSP,
                                             .type2 = ArgumentType::REGISTER,
                                             .arg2  = RDI};
-            IRInsert(ir, &pop_arg, error);     // mov rsp, rdi
+            IRInsert(ir, &pop_arg, error); // mov rsp, rdi
 
             instruction_t push_reg = {  .code  = InstructionCode::ID_PUSH_XMM,
                                         .type1 = ArgumentType::REGISTER,
-                                        .arg1  = XMM0};
+                                        .arg1  = XMM0};     // returned value
             IRInsert(ir, &push_reg, error);
             break;
         }
@@ -544,14 +539,11 @@ void FillLabelsTable(const tree_t* tree, labels_table_t* labels, error_t* error)
     nametable_t* global = MakeNametable();
     StackPush(&tables, global);
 
-    ir->size++; // jmp :_0_
+    ir->size += 2; // call :_0_, hlt
 
     int ram_spot = INIT_RAM;
 
     TranslateNodeToIR(ir, tree, tree->root, &tables, labels, &ram_spot, error);
-
-    instruction_t hlt = {.code = InstructionCode::ID_HLT};
-    IRInsert(ir, &hlt, error);
 
     IRDtor(ir);
     StackDtor(&tables);

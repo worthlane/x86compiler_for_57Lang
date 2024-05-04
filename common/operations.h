@@ -4,7 +4,7 @@
 
 // ======================================================================
 // OPERATIONS
-// =============
+// ======================================================================
 
 #ifdef DEF_CONSTS
 
@@ -63,6 +63,16 @@ static const instruction_t CMP_OP = {   .code = InstructionCode::ID_CMP,
                                         .arg1  = XMM1,
                                         .type2 = ArgumentType::NUM,
                                         .arg2  = 0};
+
+static const instruction_t RSP_RET       = { .code  = InstructionCode::ID_MOV,
+                                            .type1 = ArgumentType::REGISTER,
+                                            .arg1  = RSP,
+                                            .type2 = ArgumentType::REGISTER,
+                                            .arg2  = RBP};
+
+static const instruction_t RET_VAL = { .code = InstructionCode::ID_POP_XMM,
+                                        .type1 = ArgumentType::REGISTER,
+                                        .arg1  = XMM0};
 
 #endif
 
@@ -126,7 +136,7 @@ DEF_OP(DIV, true, "/", (NUMBER_1 / NUMBER_2), true,
 
 DEF_OP(DEG, true, "^", ( pow(NUMBER_1, NUMBER_2) ), true,
 {
-    assert(false && "THIS COMMANT DOES NOT SUPPORT NOW");
+    assert(false && "THIS COMMAND DOES NOT SUPPORT NOW");
 })
 
 DEF_OP(ASSIGN, false, ":=", (0), false,
@@ -137,17 +147,17 @@ DEF_OP(ASSIGN, false, ":=", (0), false,
 
 DEF_OP(SIN, false, "$1#", ( sin( NUMBER_1 )), true,
 {
-    assert(false && "THIS COMMANT DOES NOT SUPPORT NOW");
+    assert(false && "THIS COMMAND DOES NOT SUPPORT NOW");
 })
 
 DEF_OP(SQRT, false, "57#", ( sqrt( NUMBER_1 )), true,
 {
-    assert(false && "THIS COMMANT DOES NOT SUPPORT NOW");
+    assert(false && "THIS COMMAND DOES NOT SUPPORT NOW");
 })
 
 DEF_OP(COS, false, "<0$", ( cos( NUMBER_1 )), true,
 {
-    assert(false && "THIS COMMANT DOES NOT SUPPORT NOW");
+    assert(false && "THIS COMMAND DOES NOT SUPPORT NOW");
 })
 
 DEF_OP(IF, false, "57?", (0), false,
@@ -303,6 +313,8 @@ DEF_OP(RETURN, false, "~57", (0), false,
 {
     TranslateNodeToIR(ir, tree, node->left, tables, labels, ram_spot, error);
 
+    IRInsert(ir, &RET_VAL, error);        // pop xmm0
+    IRInsert(ir, &RSP_RET, error);       // mov rsp, rbp
     IRInsert(ir, &STK_FRAME_RET, error); // pop rbp
     IRInsert(ir, &RETURN, error);
     break;

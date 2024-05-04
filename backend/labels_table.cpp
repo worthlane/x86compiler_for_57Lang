@@ -104,3 +104,19 @@ size_t GetElemIndexFromLabelsTable(labels_table_t* table, const char* name)
 
     return UNKNOWN_ELEM;
 }
+
+// -------------------------------------------------------------
+
+void DumpLabelsTable(labels_table_t* table)
+{
+    assert(table);
+
+    table_elem_t* cur = table->root;
+
+    while (cur != NULL)
+    {
+        printf("%s %lu\n", cur->name, cur->index);
+
+        cur = cur->next;
+    }
+}

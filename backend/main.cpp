@@ -38,10 +38,14 @@ int main(const int argc, const char* argv[])
 
     FillLabelsTable(&tree, labels, &error);
 
+    DumpLabelsTable(labels);
+
     ir_t* intermediate_rep = IRCtor(IR_SIZE, &error);
     EXIT_IF_ERROR(&error);
 
     MoveTreeToIR(&tree, intermediate_rep, labels, &error);
+
+    IRDump(stdout, intermediate_rep);
 
     LabelsTableDtor(labels);
     TreeDtor(&tree);
