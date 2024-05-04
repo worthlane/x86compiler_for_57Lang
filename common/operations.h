@@ -3,6 +3,70 @@
 #endif
 
 // ======================================================================
+// OPERATIONS
+// =============
+
+#ifdef DEF_CONSTS
+
+static const instruction_t POP_VAL1 = { .code = InstructionCode::ID_POP_XMM,
+                                        .type1 = ArgumentType::REGISTER,
+                                        .arg1  = XMM1};
+
+static const instruction_t POP_VAL2 = { .code = InstructionCode::ID_POP_XMM,
+                                        .type1 = ArgumentType::REGISTER,
+                                        .arg1  = XMM2};
+
+static const instruction_t ADD_XMM = {  .code = InstructionCode::ID_ADD,
+                                        .type1 = ArgumentType::REGISTER,
+                                        .arg1  = XMM1,
+                                        .type2 = ArgumentType::REGISTER,
+                                        .arg2  = XMM2};
+
+static const instruction_t SUB_XMM = {  .code = InstructionCode::ID_SUB,
+                                        .type1 = ArgumentType::REGISTER,
+                                        .arg1  = XMM1,
+                                        .type2 = ArgumentType::REGISTER,
+                                        .arg2  = XMM2};
+
+static const instruction_t MUL_XMM = {  .code = InstructionCode::ID_MUL,
+                                        .type1 = ArgumentType::REGISTER,
+                                        .arg1  = XMM1,
+                                        .type2 = ArgumentType::REGISTER,
+                                        .arg2  = XMM2};
+
+static const instruction_t DIV_XMM = {  .code = InstructionCode::ID_DIV,
+                                        .type1 = ArgumentType::REGISTER,
+                                        .arg1  = XMM1,
+                                        .type2 = ArgumentType::REGISTER,
+                                        .arg2  = XMM2};
+
+static const instruction_t PUSH_XMM = { .code = InstructionCode::ID_PUSH_XMM,
+                                        .type1 = ArgumentType::REGISTER,
+                                        .arg1  = XMM1};
+
+static const instruction_t RETURN = {.code = InstructionCode::ID_RET};
+
+static const instruction_t STK_FRAME_RET = {    .code  = InstructionCode::ID_POP,
+                                                .type1 = ArgumentType::REGISTER,
+                                                .arg1  = RBP};
+
+static const instruction_t OUT_INSTR = {.code = InstructionCode::ID_OUT};
+
+static const instruction_t IN_INSTR = {.code = InstructionCode::ID_IN};
+
+static const instruction_t POP_OP = {   .code = InstructionCode::ID_POP_XMM,
+                                        .type1 = ArgumentType::REGISTER,
+                                        .arg1  = XMM1};
+
+static const instruction_t CMP_OP = {   .code = InstructionCode::ID_CMP,
+                                        .type1 = ArgumentType::REGISTER,
+                                        .arg1  = XMM1,
+                                        .type2 = ArgumentType::NUM,
+                                        .arg2  = 0};
+
+#endif
+
+// ======================================================================
 // FORMAT
 // ======================================================================
 
@@ -14,126 +78,49 @@
 
 DEF_OP(ADD, true, "+", (NUMBER_1 + NUMBER_2), true,
 {
-    TranslateNodeToIR(ir, tree, node->left, tables, ram_spot, error);
-    TranslateNodeToIR(ir, tree, node->right, tables, ram_spot, error);
+    TranslateNodeToIR(ir, tree, node->left, tables, labels, ram_spot, error);
+    TranslateNodeToIR(ir, tree, node->right, tables,  labels, ram_spot, error);
 
-    instruction_t pop_val1 = {.code = InstructionCode::ID_POP_XMM,
-                              .type1 = ArgumentType::REGISTER,
-                              .arg1  = XMM1};
-
-    instruction_t pop_val2 = {.code = InstructionCode::ID_POP_XMM,
-                              .type1 = ArgumentType::REGISTER,
-                              .arg1  = XMM2};
-
-    instruction_t add = {.code = InstructionCode::ID_ADD,
-                         .type1 = ArgumentType::REGISTER,
-                         .arg1  = XMM1,
-                         .type2 = ArgumentType::REGISTER,
-                         .arg2  = XMM2};
-
-    instruction_t push = {  .code = InstructionCode::ID_PUSH_XMM,
-                            .type1 = ArgumentType::REGISTER,
-                            .arg1  = XMM1};
-
-    IRInsert(ir, &pop_val1, error);
-    IRInsert(ir, &pop_val2, error);
-    IRInsert(ir, &add, error);
-    IRInsert(ir, &push, error);
-
-    PrintWithTabs(out_stream, TABS_AMT, "add\n");
+    IRInsert(ir, &POP_VAL1, error);
+    IRInsert(ir, &POP_VAL2, error);
+    IRInsert(ir, &ADD_XMM, error);
+    IRInsert(ir, &PUSH_XMM, error);
     break;
 })
 
 DEF_OP(SUB, true, "-", (NUMBER_1 - NUMBER_2), true,
 {
-    TranslateNodeToIR(ir, tree, node->left, tables, ram_spot, error);
-    TranslateNodeToIR(ir, tree, node->right, tables, ram_spot, error);
+    TranslateNodeToIR(ir, tree, node->left, tables, labels, ram_spot, error);
+    TranslateNodeToIR(ir, tree, node->right, tables, labels, ram_spot, error);
 
-    instruction_t pop_val1 = {.code = InstructionCode::ID_POP_XMM,
-                              .type1 = ArgumentType::REGISTER,
-                              .arg1  = XMM1};
-
-    instruction_t pop_val2 = {.code = InstructionCode::ID_POP_XMM,
-                              .type1 = ArgumentType::REGISTER,
-                              .arg1  = XMM2};
-
-    instruction_t sub = {.code = InstructionCode::ID_SUB,
-                         .type1 = ArgumentType::REGISTER,
-                         .arg1  = XMM1,
-                         .type2 = ArgumentType::REGISTER,
-                         .arg2  = XMM2};
-
-    instruction_t push = {  .code = InstructionCode::ID_PUSH_XMM,
-                            .type1 = ArgumentType::REGISTER,
-                            .arg1  = XMM1};
-
-    IRInsert(ir, &pop_val1, error);
-    IRInsert(ir, &pop_val2, error);
-    IRInsert(ir, &sub, error);
-    IRInsert(ir, &push, error);
-
+    IRInsert(ir, &POP_VAL1, error);
+    IRInsert(ir, &POP_VAL2, error);
+    IRInsert(ir, &SUB_XMM, error);
+    IRInsert(ir, &PUSH_XMM, error);
     break;
 })
 
 DEF_OP(MUL, true, "*", (NUMBER_1 * NUMBER_2), true,
 {
-    TranslateNodeToIR(ir, tree, node->left, tables, ram_spot, error);
-    TranslateNodeToIR(ir, tree, node->right, tables, ram_spot, error);
+    TranslateNodeToIR(ir, tree, node->left, tables, labels, ram_spot, error);
+    TranslateNodeToIR(ir, tree, node->right, tables, labels, ram_spot, error);
 
-    instruction_t pop_val1 = {.code = InstructionCode::ID_POP_XMM,
-                              .type1 = ArgumentType::REGISTER,
-                              .arg1  = XMM1};
-
-    instruction_t pop_val2 = {.code = InstructionCode::ID_POP_XMM,
-                              .type1 = ArgumentType::REGISTER,
-                              .arg1  = XMM2};
-
-    instruction_t mul = {.code = InstructionCode::ID_MUL,
-                         .type1 = ArgumentType::REGISTER,
-                         .arg1  = XMM1,
-                         .type2 = ArgumentType::REGISTER,
-                         .arg2  = XMM2};
-
-    instruction_t push = {  .code = InstructionCode::ID_PUSH_XMM,
-                            .type1 = ArgumentType::REGISTER,
-                            .arg1  = XMM1};
-
-    IRInsert(ir, &pop_val1, error);
-    IRInsert(ir, &pop_val2, error);
-    IRInsert(ir, &mul, error);
-    IRInsert(ir, &push, error);
-
+    IRInsert(ir, &POP_VAL1, error);
+    IRInsert(ir, &POP_VAL2, error);
+    IRInsert(ir, &MUL_XMM, error);
+    IRInsert(ir, &PUSH_XMM, error);
     break;
 })
 
 DEF_OP(DIV, true, "/", (NUMBER_1 / NUMBER_2), true,
 {
-    TranslateNodeToIR(ir, tree, node->left, tables, ram_spot, error);
-    TranslateNodeToIR(ir, tree, node->right, tables, ram_spot, error);
+    TranslateNodeToIR(ir, tree, node->left, tables, labels, ram_spot, error);
+    TranslateNodeToIR(ir, tree, node->right, tables, labels, ram_spot, error);
 
-    instruction_t pop_val1 = {.code = InstructionCode::ID_POP_XMM,
-                              .type1 = ArgumentType::REGISTER,
-                              .arg1  = XMM1};
-
-    instruction_t pop_val2 = {.code = InstructionCode::ID_POP_XMM,
-                              .type1 = ArgumentType::REGISTER,
-                              .arg1  = XMM2};
-
-    instruction_t div = {.code = InstructionCode::ID_DIV,
-                         .type1 = ArgumentType::REGISTER,
-                         .arg1  = XMM1,
-                         .type2 = ArgumentType::REGISTER,
-                         .arg2  = XMM2};
-
-    instruction_t push = {  .code = InstructionCode::ID_PUSH_XMM,
-                            .type1 = ArgumentType::REGISTER,
-                            .arg1  = XMM1};
-
-    IRInsert(ir, &pop_val1, error);
-    IRInsert(ir, &pop_val2, error);
-    IRInsert(ir, &div, error);
-    IRInsert(ir, &push, error);
-
+    IRInsert(ir, &POP_VAL1, error);
+    IRInsert(ir, &POP_VAL2, error);
+    IRInsert(ir, &DIV_XMM, error);
+    IRInsert(ir, &PUSH_XMM, error);
     break;
 })
 
@@ -144,7 +131,7 @@ DEF_OP(DEG, true, "^", ( pow(NUMBER_1, NUMBER_2) ), true,
 
 DEF_OP(ASSIGN, false, ":=", (0), false,
 {
-    TranslateAssignToIR(ir, tree, node, tables, ram_spot, error);
+    TranslateAssignToIR(ir, tree, node, tables, labels, ram_spot, error);
     break;
 })
 
@@ -165,136 +152,131 @@ DEF_OP(COS, false, "<0$", ( cos( NUMBER_1 )), true,
 
 DEF_OP(IF, false, "57?", (0), false,
 {
-    int free_label = label_spot++;
+    TranslateNodeToIR(ir, tree, node->left, tables, labels, ram_spot, error);
 
-    instruction_t pop_op = {.code = InstructionCode::ID_POP_XMM,
-                              .type1 = ArgumentType::REGISTER,
-                              .arg1  = XMM1};
+    IRInsert(ir, &POP_OP, error);
+    IRInsert(ir, &CMP_OP, error);
 
-    instruction_t cmp_op = {.code = InstructionCode::ID_CMP,
-                            .type1 = ArgumentType::REGISTER,
-                            .arg1  = XMM1,
-                            .type2 = ArgumentType::NUM,
-                            .arg2  = 0};
+    size_t jmp_false_pos = ir->size;
+    instruction_t jmp_false = {};
+    jmp_false.code       = InstructionCode::ID_JE;
+    jmp_false.need_patch = true;
+    jmp_false.refer_to   = 0;
 
-    TranslateNodeToIR(ir, tree, node->left, tables, ram_spot, error);
-
-    IRInsert(ir, &pop_op, error);
-    IRInsert(ir, &cmp_op, error);
-
-    PrintWithTabs(out_stream, TABS_AMT, "je :FALSE_COND_%d\n", (int) free_label);
+    IRInsert(ir, &jmp_false, error); // je :FALSE_COND
 
     nametable_t* local = MakeNametable();
     StackPush(tables, local);
-
-    TranslateNodeToIR(ir, tree, node->right, tables, ram_spot, error);
-
+    TranslateNodeToIR(ir, tree, node->right, tables, labels, ram_spot, error);
     StackPop(tables);
 
-    fprintf(out_stream, ":FALSE_COND_%d" LOTS_TABS "%% IF END\n\n", (int) free_label);
+    ir->array[jmp_false_pos].refer_to = ir->size;
+    // :FALSE_COND
 
     break;
 })
 
 DEF_OP(WHILE, false, "1000_7", (0), false,
 {
-    int free_label_cycle = label_spot++;
-    int free_label_cond  = label_spot++;
+    size_t while_start = ir->size;
+    // :WHILE START
 
-    instruction_t pop_op = {.code = InstructionCode::ID_POP_XMM,
-                              .type1 = ArgumentType::REGISTER,
-                              .arg1  = XMM1};
+    TranslateNodeToIR(ir, tree, node->left, tables, labels, ram_spot, error);
 
-    instruction_t cmp_op = {.code = InstructionCode::ID_CMP,
-                            .type1 = ArgumentType::REGISTER,
-                            .arg1  = XMM1,
-                            .type2 = ArgumentType::NUM,
-                            .arg2  = 0};
+    IRInsert(ir, &POP_OP, error);
+    IRInsert(ir, &CMP_OP, error);
 
-    fprintf(out_stream, "\n:WHILE_CYCLE_%d" LOTS_TABS "%% WHILE START\n", free_label_cycle);
+    size_t break_jmp_pos = ir->size;
 
-    TranslateNodeToIR(ir, tree, node->left, tables, ram_spot, error);
+    instruction_t jmp_break = {};
+    jmp_break.code       = InstructionCode::ID_JE;
+    jmp_break.need_patch = true;
+    jmp_break.refer_to   = 0;
 
-    IRInsert(ir, &pop_op, error);
-    IRInsert(ir, &cmp_op, error);
-    PrintWithTabs(out_stream, TABS_AMT, "je :QUIT_CYCLE_%d\n", free_label_cond);
+    IRInsert(ir, &jmp_break, error); // je :QUIT_CYCLE
 
     nametable_t* local = MakeNametable();
     StackPush(tables, local);
-
-    TranslateNodeToIR(ir, tree, node->right, tables, ram_spot, error);
-
+    TranslateNodeToIR(ir, tree, node->right, tables, labels, ram_spot, error);
     StackPop(tables);
 
-    PrintWithTabs(out_stream, TABS_AMT, "jmp :WHILE_CYCLE_%d\n", free_label_cycle);
-    fprintf(out_stream, ":QUIT_CYCLE_%d" LOTS_TABS "%% WHILE END\n\n", free_label_cond);
+    instruction_t jmp_start = {};
+    jmp_start.code       = InstructionCode::ID_JMP;
+    jmp_start.need_patch = true;
+    jmp_start.refer_to   = while_start;
+
+    IRInsert(ir, &jmp_start, error); // jmp :WHILE_START
+
+    ir->array[break_jmp_pos].refer_to = ir->size;
+    // :QUIT_CYCLE
 
     break;
 })
 
 DEF_OP(GREATER, false,">", (NUMBER_1 > NUMBER_2), true,
 {
-    TranslateCompareToIR(ir, tree, node, tables, &label_spot, ram_spot, ID_JB, error);
+    TranslateCompareToIR(ir, tree, node, tables, labels, ram_spot, InstructionCode::ID_JB, error);
     break;
 })
 DEF_OP(GREATER_EQ, false, ">=", (NUMBER_1 >= NUMBER_2), true,
 {
-    TranslateCompareToIR(ir, tree, node, tables, &label_spot, ram_spot, ID_JBE, error);
+    TranslateCompareToIR(ir, tree, node, tables, labels, ram_spot, InstructionCode::ID_JBE, error);
     break;
 })
 DEF_OP(LESS, false, "<", (NUMBER_1 < NUMBER_2), true,
 {
-    TranslateCompareToIR(ir, tree, node, tables, &label_spot, ram_spot, ID_JA, error);
+    TranslateCompareToIR(ir, tree, node, tables, labels, ram_spot, InstructionCode::ID_JA, error);
     break;
 })
 DEF_OP(LESS_EQ, false, "<=", (NUMBER_1 <= NUMBER_2), true,
 {
-    TranslateCompareToIR(ir, tree, node, tables, &label_spot, ram_spot, ID_JAE, error);
+    TranslateCompareToIR(ir, tree, node, tables, labels, ram_spot, InstructionCode::ID_JAE, error);
     break;
 })
 DEF_OP(EQ,false, "==", (NUMBER_1 == NUMBER_2), true,
 {
-    TranslateCompareToIR(ir, tree, node, tables, &label_spot, ram_spot, ID_JE, error);
+    TranslateCompareToIR(ir, tree, node, tables, labels, ram_spot, InstructionCode::ID_JE, error);
     break;
 })
 DEF_OP(NOT_EQ, false, "!=", (NUMBER_1 != NUMBER_2), true,
 {
-    TranslateCompareToIR(ir, tree, node, tables, &label_spot, ram_spot, ID_JNE, error);
+    TranslateCompareToIR(ir, tree, node, tables, labels, ram_spot, InstructionCode::ID_JNE, error);
     break;
 })
 DEF_OP(AND, false, "&&", (NUMBER_1 && NUMBER_2), true,
 {
-    TranslateAndToIR(ir, tree, node, tables, &label_spot, ram_spot, error);
+    TranslateAndToIR(ir, tree, node, tables, labels, ram_spot, error);
     break;
 })
 DEF_OP(OR, false, "||", (NUMBER_1 || NUMBER_2), true,
 {
-    TranslateOrToIR(ir, tree, node, tables, &label_spot, ram_spot, error);
+    TranslateOrToIR(ir, tree, node, tables, labels, ram_spot, error);
     break;
 })
 
 DEF_OP(READ, false, "57>>", (0), false,
 {
-    instruction_t in = {.code = InstructionCode::ID_IN};
-    IRInsert(ir, &in, error);
+    IRInsert(ir, &IN_INSTR, error);
 
     int ram_id = GetNameRamIdFromStack(tables, NODE_NAME(node->left));
 
-    instruction_t pop_ram = {   .code  = InstructionCode::ID_POP_XMM,
-                                .type1 = ArgumentType::RAM,
-                                .arg1  = ram_id};
+    instruction_t pop_ram = {};
+
+    pop_ram.code  = InstructionCode::ID_POP_XMM;
+    pop_ram.type1 = ArgumentType::RAM;
+    pop_ram.arg1  = ram_id;
+
     IRInsert(ir, &pop_ram, error);
     break;
 })
 
 DEF_OP(PRINT, false, "57<<", (0), false,
 {
-    TranslateNodeToIR(ir, tree, node->left, tables, ram_spot, error);
+    TranslateNodeToIR(ir, tree, node->left, tables, labels, ram_spot, error);
 
     // что то с out сделать
 
-    instruction_t out = {.code = InstructionCode::ID_OUT};
-    IRInsert(ir, &out, error);
+    IRInsert(ir, &OUT_INSTR, error);
     break;
 })
 
@@ -304,14 +286,14 @@ DEF_OP(L_BRACKET, true, "(", (0), false, {})
 DEF_OP(R_BRACKET, true, ")", (0), false, {})
 DEF_OP(COMMA, true, ",", (0), false,
 {
-    TranslateNodeToIR(ir, tree, node->right, tables, ram_spot, error);      // TODO notice right -> left
-    TranslateNodeToIR(ir, tree, node->left, tables, ram_spot, error);
+    TranslateNodeToIR(ir, tree, node->right, tables, labels, ram_spot, error);      // TODO notice right -> left
+    TranslateNodeToIR(ir, tree, node->left, tables, labels, ram_spot, error);
     break;
 })
 DEF_OP(LINE_END, true, "\n", (0), false,
 {
-    TranslateNodeToIR(ir, tree, node->left, tables, ram_spot, error);
-    TranslateNodeToIR(ir, tree, node->right, tables, ram_spot, error);
+    TranslateNodeToIR(ir, tree, node->left, tables, labels, ram_spot, error);
+    TranslateNodeToIR(ir, tree, node->right, tables, labels, ram_spot, error);
     break;
 })
 DEF_OP(BLOCK_END, false, ".57", (0), false, {})
@@ -319,15 +301,10 @@ DEF_OP(FUNC_WALL, false, "##################################################", (
 
 DEF_OP(RETURN, false, "~57", (0), false,
 {
-    TranslateNodeToIR(ir, tree, node->left, tables, ram_spot, error)
+    TranslateNodeToIR(ir, tree, node->left, tables, labels, ram_spot, error);
 
-    instruction_t stk_frame_ret = { .code  = InstructionCode::ID_POP,
-                                    .type1 = ArgumentType::REGISTER,
-                                    .arg1  = RBP};
-    IRInsert(ir, &stk_frame_ret, error); // pop rbp
-
-    instruction_t ret = {.code = InstructionCode::ID_RET};
-    IRInsert(ir, &ret, error);
+    IRInsert(ir, &STK_FRAME_RET, error); // pop rbp
+    IRInsert(ir, &RETURN, error);
     break;
 })
 

@@ -39,6 +39,14 @@ ir_t* IRCtor(const size_t size, error_t* error)
         return nullptr;
     }
 
+    if (size == FAKE_IR_CAP)
+    {
+        ir->size  = 0;
+        ir->cap   = FAKE_IR_CAP;
+        ir->array = NULL;
+        return ir;
+    }
+
     instruction_t* array = (instruction_t*) calloc(size, sizeof(instruction_t));
     if (array == nullptr)
     {
@@ -58,7 +66,8 @@ ir_t* IRCtor(const size_t size, error_t* error)
 
 void IRDtor(ir_t* ir)
 {
-    free(ir->array);
+    if (ir->cap != FAKE_IR_CAP)
+        free(ir->array);
 
     free(ir);
 }
@@ -95,7 +104,12 @@ static void IRRealloc(ir_t* ir, size_t new_capacity, error_t* error)
 
 void IRInsert(ir_t* ir, const instruction_t* instr, error_t* error)
 {
-    assert(ir);
+    if (ir->cap == FAKE_IR_CAP)   // FAKE IR
+    {
+        ir->size++;
+        return;
+    }
+
     assert(error);
 
     if (ir->size >= ir->cap)

@@ -5,6 +5,7 @@
 #include "backend.h"
 #include "stack/stack.h"
 #include "ir.h"
+#include "labels_table.h"
 
 #ifdef  NODE_NAME
 #undef  NODE_NAME
@@ -27,9 +28,22 @@ static const int ARG_INIT_RAM = 16;
 static int GetNameRamIdFromStack(const Stack_t* stk, const char* name);
 static int GetNameRamIdFromTable(const nametable_t* nametable, const char* name);
 
+static void TranslateNodeToIR(ir_t* ir, const tree_t* tree, const Node* node,
+                              Stack_t* tables, labels_table_t* labels, int* ram_spot, error_t* error);
+static void TranslateAssignToIR(ir_t* ir, const tree_t* tree, const Node* node,
+                                Stack_t* tables, labels_table_t* labels, int* ram_spot, error_t* error);
+static void GetParams(ir_t* ir, const tree_t* tree, const Node* node,
+                      Stack_t* tables, labels_table_t* labels, int* ram_spot);
+static void TranslateCompareToIR(ir_t* ir, const tree_t* tree, const Node* node, Stack_t* tables,
+                                labels_table_t* labels, int* ram_spot,  const InstructionCode comparator, error_t* error);
+static void TranslateAndToIR(ir_t* ir, const tree_t* tree, const Node* node, Stack_t* tables,
+                            labels_table_t* labels, int* ram_spot, error_t* error);
+static void TranslateOrToIR(ir_t* ir, const tree_t* tree, const Node* node, Stack_t* tables,
+                             labels_table_t* labels, int* ram_spot, error_t* error);
+
 // =====================================================
 
-void MoveTreeToIR(const tree_t* tree, ir_t* ir, error_t* error)
+void MoveTreeToIR(const tree_t* tree, ir_t* ir, labels_table_t* labels, error_t* error)
 {
     assert(tree);
     assert(ir);
@@ -41,18 +55,19 @@ void MoveTreeToIR(const tree_t* tree, ir_t* ir, error_t* error)
     nametable_t* global = MakeNametable();
     StackPush(&tables, global);
 
-    fprintf(out_stream, "jmp :_0_\n");
+    instruction_t jmp = {   .code  = InstructionCode::ID_JMP,
+                            .need_patch = true,
+                            .refer_to   = GetElemIndexFromLabelsTable(labels, "_0_")};
+    IRInsert(ir, &jmp, error);
 
     int ram_spot = INIT_RAM;
 
-    TranslateNodeToIR(ir, tree, tree->root, &tables, &ram_spot, error);
+    TranslateNodeToIR(ir, tree, tree->root, &tables, labels, &ram_spot, error);
 
     instruction_t hlt = {.code = InstructionCode::ID_HLT};
     IRInsert(ir, &hlt, error);
 
     StackDtor(&tables);
-
-
 }
 
 //-----------------------------------------------------------------------------------------------------
@@ -62,12 +77,10 @@ void MoveTreeToIR(const tree_t* tree, ir_t* ir, error_t* error)
                     asm
 
 static void TranslateNodeToIR(ir_t* ir, const tree_t* tree, const Node* node,
-                              Stack_t* tables, int* ram_spot, error_t* error)
+                              Stack_t* tables, labels_table_t* labels, int* ram_spot, error_t* error)
 {
     assert(tree);
     assert(ir);
-
-    static int label_spot = 0;
 
     if (node == nullptr)
         return;
@@ -75,7 +88,7 @@ static void TranslateNodeToIR(ir_t* ir, const tree_t* tree, const Node* node,
     if (node->type == NodeType::NUM)
     {
         instruction_t instr = {.code  = InstructionCode::ID_PUSH_XMM,
-                               .type1 = ArgumentType::VALUE,
+                               .type1 = ArgumentType::NUM,
                                .arg1  = (int) node->value.val};
 
         IRInsert(ir, &instr, error);
@@ -85,8 +98,6 @@ static void TranslateNodeToIR(ir_t* ir, const tree_t* tree, const Node* node,
     if (node->type == NodeType::VAR)
     {
         int ram_id = GetNameRamIdFromStack(tables, NODE_NAME(node));
-        if (ram_id == NO_RAM)
-            error->code = (int) BackendErrors::NON_INIT_VAR;
 
         instruction_t push_ram = {  .code  = InstructionCode::ID_PUSH_XMM,
                                     .type1 = ArgumentType::RAM,
@@ -100,22 +111,24 @@ static void TranslateNodeToIR(ir_t* ir, const tree_t* tree, const Node* node,
 
     switch (node->value.opt)
     {
+        #define DEF_CONSTS
         #include "common/operations.h"
+        #undef DEF_CONSTS
 
         case (Operators::NEW_FUNC):
         {
-            TranslateNodeToIR(ir, tree, node->left, tables, ram_spot, error);
-            TranslateNodeToIR(ir, tree, node->right, tables, ram_spot, error);
+            TranslateNodeToIR(ir, tree, node->left, tables, labels, ram_spot, error);
+            TranslateNodeToIR(ir, tree, node->right, tables, labels, ram_spot, error);
             break;
         }
         case (Operators::TYPE):
         {
-            TranslateNodeToIR(ir, tree, node->right, tables, ram_spot, error);
+            TranslateNodeToIR(ir, tree, node->right, tables, labels, ram_spot, error);
             break;
         }
         case (Operators::FUNC):
         {
-            fprintf(out_stream, "\n:%s" LOTS_TABS "%% FUNC START\n", tree->names.list[node->left->value.var].name);
+            InsertNameInLabelsTable(labels, NODE_NAME(node->left), ir->size); // func start label
 
             instruction_t stk_frame_in  = { .code  = InstructionCode::ID_PUSH,
                                             .type1 = ArgumentType::REGISTER,
@@ -133,10 +146,10 @@ static void TranslateNodeToIR(ir_t* ir, const tree_t* tree, const Node* node,
             StackPush(tables, local);
             int local_ram_spot = ARG_INIT_RAM;
 
-            GetParams(ir, tree, node->left->left, tables, &local_ram_spot);
+            GetParams(ir, tree, node->left->left, tables, labels, &local_ram_spot);
 
             local_ram_spot = INIT_RAM;
-            TranslateNodeToIR(ir, tree, node->left->right, tables, &local_ram_spot, error);
+            TranslateNodeToIR(ir, tree, node->left->right, tables, labels, &local_ram_spot, error);
 
             StackPop(tables);
 
@@ -146,40 +159,46 @@ static void TranslateNodeToIR(ir_t* ir, const tree_t* tree, const Node* node,
         {
             int name_amt = ((nametable_t*) LOCAL_TABLE(tables))->size;
 
-            /*for (int i = 0; i < name_amt; i++)
-            {
-                int id = LOCAL_TABLE(tables)->list[i].ram_id;
+            instruction_t stk_save       = { .code  = InstructionCode::ID_MOV,
+                                            .type1 = ArgumentType::REGISTER,
+                                            .arg1  = RDI,
+                                            .type2 = ArgumentType::REGISTER,
+                                            .arg2  = RSP};
+            IRInsert(ir, &stk_save, error);     // mov rdi, rsp
 
-                instruction_t push_ram = {   .code  = InstructionCode::ID_PUSH_XMM,
-                                             .type1 = ArgumentType::RAM,
-                                             .arg1  = id};
-                IRInsert(ir, &push_ram, error);
-            }*/
+            instruction_t rdi_save  = { .code  = InstructionCode::ID_PUSH,
+                                            .type1 = ArgumentType::REGISTER,
+                                            .arg1  = RDI};
+            IRInsert(ir, &rdi_save, error); // push rdi
 
-            TranslateNodeToIR(ir, tree, node->left->left, tables, ram_spot, error);
-            PrintWithTabs(out_stream, TABS_AMT, "call :%s\n", tree->names.list[node->left->value.var].name);
+            TranslateNodeToIR(ir, tree, node->left->left, tables, labels, ram_spot, error);
 
-            // pop
+            instruction_t call = {  .code  = InstructionCode::ID_CALL,
+                                    .need_patch = true,
+                                    .refer_to   = GetElemIndexFromLabelsTable(labels, NODE_NAME(node->left))};
+            IRInsert(ir, &call, error);
 
-            /*instruction_t pop_reg = {   .code  = InstructionCode::ID_POP_XMM,
+            instruction_t pop_reg = {   .code  = InstructionCode::ID_POP_XMM,
                                         .type1 = ArgumentType::REGISTER,
                                         .arg1  = XMM0};
-            IRInsert(ir, &pop_reg, error);*/
+            IRInsert(ir, &pop_reg, error);
 
-            /*for (int i = 0; i < name_amt; i++)
-            {
-                int id = LOCAL_TABLE(tables)->list[i].ram_id;
+            instruction_t ret_rdi  = { .code  = InstructionCode::ID_POP,
+                                            .type1 = ArgumentType::REGISTER,
+                                            .arg1  = RDI};
+            IRInsert(ir, &ret_rdi, error); // pop rdi
 
-                instruction_t pop_ram = {   .code  = InstructionCode::ID_POP_XMM,
-                                            .type1 = ArgumentType::RAM,
-                                            .arg1  = id};
-                IRInsert(ir, &pop_ram, error);
-            }*/
+            instruction_t pop_arg       = { .code  = InstructionCode::ID_MOV,
+                                            .type1 = ArgumentType::REGISTER,
+                                            .arg1  = RSP,
+                                            .type2 = ArgumentType::REGISTER,
+                                            .arg2  = RDI};
+            IRInsert(ir, &pop_arg, error);     // mov rsp, rdi
 
-            /*instruction_t push_reg = {  .code  = InstructionCode::ID_PUSH_XMM,
+            instruction_t push_reg = {  .code  = InstructionCode::ID_PUSH_XMM,
                                         .type1 = ArgumentType::REGISTER,
                                         .arg1  = XMM0};
-            IRInsert(ir, &push_reg, error);*/
+            IRInsert(ir, &push_reg, error);
             break;
         }
     }
@@ -190,7 +209,7 @@ static void TranslateNodeToIR(ir_t* ir, const tree_t* tree, const Node* node,
 //-----------------------------------------------------------------------------------------------------
 
 static void TranslateAssignToIR(ir_t* ir, const tree_t* tree, const Node* node,
-                                Stack_t* tables, int* ram_spot, error_t* error)
+                                Stack_t* tables, labels_table_t* labels, int* ram_spot, error_t* error)
 {
     assert(ram_spot);
     assert(tree);
@@ -198,7 +217,7 @@ static void TranslateAssignToIR(ir_t* ir, const tree_t* tree, const Node* node,
     assert(tables);
     assert(error);
 
-    TranslateNodeToIR(ir, tree, node->right, tables, ram_spot, error);
+    TranslateNodeToIR(ir, tree, node->right, tables, labels, ram_spot, error);
 
     int ram_id = GetNameRamIdFromStack(tables, NODE_NAME(node->left));
 
@@ -213,16 +232,9 @@ static void TranslateAssignToIR(ir_t* ir, const tree_t* tree, const Node* node,
     }
 
     instruction_t pop_ram = {   .code  = InstructionCode::ID_POP_XMM,
-                                .type1 = ArgumentType::REGISTER,
-                                .arg1  = XMM3};
-    IRInsert(ir, &pop_ram, error);
-
-    instruction_t mov_ram = {   .code  = InstructionCode::ID_MOV_XMM,
                                 .type1 = ArgumentType::RAM,
-                                .arg1  = ram_id,
-                                .type1 = ArgumentType::REGISTER,
-                                .arg1  = XMM3};
-    IRInsert(ir, &mov_ram, error);
+                                .arg1  = ram_id};
+    IRInsert(ir, &pop_ram, error);
 }
 
 //-----------------------------------------------------------------------------------------------------
@@ -262,7 +274,8 @@ static int GetNameRamIdFromTable(const nametable_t* nametable, const char* name)
 
 //-----------------------------------------------------------------------------------------------------
 
-static void GetParams(ir_t* ir, const tree_t* tree, const Node* node, Stack_t* tables, int* ram_spot)
+static void GetParams(ir_t* ir, const tree_t* tree, const Node* node,
+                      Stack_t* tables, labels_table_t* labels, int* ram_spot)
 {
     assert(tree);
     assert(tables);
@@ -272,14 +285,14 @@ static void GetParams(ir_t* ir, const tree_t* tree, const Node* node, Stack_t* t
 
     if (node->type == NodeType::OP && node->value.opt == Operators::TYPE)
     {
-        GetParams(ir, tree, node->right, tables, ram_spot);
+        GetParams(ir, tree, node->right, tables, labels, ram_spot);
         return;
     }
 
     if (node->type == NodeType::OP && node->value.opt == Operators::COMMA)
     {
-        GetParams(ir, tree, node->left, tables, ram_spot);
-        GetParams(ir, tree, node->right, tables, ram_spot);
+        GetParams(ir, tree, node->left, tables, labels, ram_spot);
+        GetParams(ir, tree, node->right, tables, labels, ram_spot);
 
         return;
     }
@@ -293,10 +306,10 @@ static void GetParams(ir_t* ir, const tree_t* tree, const Node* node, Stack_t* t
         LOCAL_TABLE(tables)->list[id].ram_id = ram_id;
         LOCAL_TABLE(tables)->list[id].is_arg = true;
 
-        instruction_t pop_ram = {   .code  = InstructionCode::ID_POP_XMM,
+        /*instruction_t pop_ram = {   .code  = InstructionCode::ID_POP_XMM,
                                     .type1 = ArgumentType::RAM,
                                     .arg1  = ram_id};
-        IRInsert(ir, &pop_ram, error);                                          // TODO ?
+        IRInsert(ir, &pop_ram, error);                                          // TODO ?*/
         return;
     }
 
@@ -305,13 +318,12 @@ static void GetParams(ir_t* ir, const tree_t* tree, const Node* node, Stack_t* t
 
 //-----------------------------------------------------------------------------------------------------
 
-static void TranslateCompareToIR(ir_t* ir, const tree_t* tree, const Node* node, Stack_t* tables, int* label_spot, int* ram_spot,
-                                  const InstructionCode comparator, error_t* error)
+static void TranslateCompareToIR(ir_t* ir, const tree_t* tree, const Node* node, Stack_t* tables,
+                                labels_table_t* labels, int* ram_spot,  const InstructionCode comparator, error_t* error)
 {
     assert(tables);
     assert(tree);
     assert(node);
-    assert(label_spot);
 
     instruction_t pop_val1 = {.code = InstructionCode::ID_POP_XMM,
                               .type1 = ArgumentType::REGISTER,
@@ -335,32 +347,39 @@ static void TranslateCompareToIR(ir_t* ir, const tree_t* tree, const Node* node,
                                 .type1 = ArgumentType::NUM,
                                 .arg1  = 0};
 
-    TranslateNodeToIR(ir, tree, node->left, tables, ram_spot, error);
-    TranslateNodeToIR(ir, tree, node->right, tables, ram_spot, error);
+    TranslateNodeToIR(ir, tree, node->left, tables, labels, ram_spot, error);
+    TranslateNodeToIR(ir, tree, node->right, tables, labels, ram_spot, error);
 
     IRInsert(ir, &pop_val1, error);
     IRInsert(ir, &pop_val2, error);
     IRInsert(ir, &cmp, error);
-    PrintWithTabs(out_stream, TABS_AMT, "%s :TRUE_%d" LOTS_TABS "%% COMPARISON\n", comparator, *label_spot);
+
+    instruction_t jmp_true = {  .code       = comparator,
+                                .need_patch = true,
+                                .refer_to   = ir->size + 3};
+
+    IRInsert(ir, &jmp_true, error); // comparator :TRUE
+
     IRInsert(ir, &false_res, error);
-    PrintWithTabs(out_stream, TABS_AMT, "jmp :FALSE_%d\n", *label_spot);
-    fprintf(out_stream, ":TRUE_%d\n", *label_spot);
+
+    instruction_t jmp_false = {  .code      = InstructionCode::ID_JMP,
+                                .need_patch = true,
+                                .refer_to   = ir->size + 2};
+
+    IRInsert(ir, &jmp_false, error); // jmp :FALSE
+    // :TRUE
     IRInsert(ir, &true_res, error);
-    fprintf(out_stream, ":FALSE_%d" LOTS_TABS "%% COMPARISON END\n", *label_spot);
-
-
-    *label_spot++;
+    // :FALSE
 }
 
 //-----------------------------------------------------------------------------------------------------
 
 static void TranslateAndToIR(ir_t* ir, const tree_t* tree, const Node* node, Stack_t* tables,
-                              int* label_spot, int* ram_spot, error_t* error)
+                            labels_table_t* labels, int* ram_spot, error_t* error)
 {
     assert(tables);
     assert(tree);
     assert(node);
-    assert(label_spot);
 
     instruction_t pop_val1 = {.code = InstructionCode::ID_POP_XMM,
                               .type1 = ArgumentType::REGISTER,
@@ -390,30 +409,39 @@ static void TranslateAndToIR(ir_t* ir, const tree_t* tree, const Node* node, Sta
                                 .type1 = ArgumentType::NUM,
                                 .arg1  = 0};
 
-    TranslateNodeToIR(ir, tree, node->left, tables, ram_spot, error);
-    TranslateNodeToIR(ir, tree, node->right, tables, ram_spot, error);
+    TranslateNodeToIR(ir, tree, node->left, tables, labels, ram_spot, error);
+    TranslateNodeToIR(ir, tree, node->right, tables, labels, ram_spot, error);
 
     IRInsert(ir, &pop_val1, error);
     IRInsert(ir, &pop_val2, error);
     IRInsert(ir, &mul, error);
     IRInsert(ir, &cmp, error);
-    PrintWithTabs(out_stream, TABS_AMT, "je :AND_TRUE_%d\n", *label_spot);
+
+    instruction_t jmp_false = { .code = InstructionCode::ID_JE,
+                                .need_patch = true,
+                                .refer_to   = ir->size + 3};
+
+    IRInsert(ir, &jmp_false, error); // je :AND_FALSE
     IRInsert(ir, &true_res, error);
-    PrintWithTabs(out_stream, TABS_AMT, "jmp :AND_FALSE_%d\n", *label_spot);
-    fprintf(out_stream, ":AND_TRUE_%d\n", *label_spot);
+
+    instruction_t jmp_true = {  .code = InstructionCode::ID_JMP,
+                                .need_patch = true,
+                                .refer_to   = ir->size + 2};
+
+    IRInsert(ir, &jmp_true, error); // jmp :AND_TRUE
+    // :AND_FALSE
     IRInsert(ir, &false_res, error);
-    fprintf(out_stream, ":AND_FALSE_%d" LOTS_TABS "%% AND OPERATION END\n\n", *label_spot);
+    // :AND_TRUE
 }
 
 //-----------------------------------------------------------------------------------------------------
 
-static void TranslateOrToAsm(ir_t* ir, const tree_t* tree, const Node* node, Stack_t* tables,
-                              int* label_spot, int* ram_spot, error_t* error)
+static void TranslateOrToIR(ir_t* ir, const tree_t* tree, const Node* node, Stack_t* tables,
+                             labels_table_t* labels, int* ram_spot, error_t* error)
 {
     assert(tables);
     assert(tree);
     assert(node);
-    assert(label_spot);
 
     instruction_t pop_op = {.code = InstructionCode::ID_POP_XMM,
                               .type1 = ArgumentType::REGISTER,
@@ -433,31 +461,38 @@ static void TranslateOrToAsm(ir_t* ir, const tree_t* tree, const Node* node, Sta
                                 .type1 = ArgumentType::NUM,
                                 .arg1  = 0};
 
-    TranslateNodeToIR(ir, tree, node->left, tables, ram_spot, error);
+    TranslateNodeToIR(ir, tree, node->left, tables, labels, ram_spot, error);
 
     IRInsert(ir, &pop_op, error);
     IRInsert(ir, &cmp_op, error);
-    PrintWithTabs(out_stream, TABS_AMT, "je :FIRST_ZERO_%d\n", *label_spot);
+
+    instruction_t jmp_zero = {  .code = InstructionCode::ID_JE,
+                                .need_patch = true,
+                                .refer_to   = ir->size + 3};
+    IRInsert(ir, &jmp_zero, error); // je :FIRST_ZERO
     IRInsert(ir, &true_res, error);
-    PrintWithTabs(out_stream, TABS_AMT, "jmp :FIRST_NOT_ZERO_%d\n", *label_spot);
-    fprintf(out_stream, ":FIRST_ZERO_%d\n", *label_spot);
+    instruction_t jmp_not_zero = {  .code = InstructionCode::ID_JMP,
+                                    .need_patch = true,
+                                    .refer_to   = ir->size + 2};
+    IRInsert(ir, &jmp_not_zero, error); // jmp :FIRST__NOT_ZERO
+    // :FIRST_ZERO
     IRInsert(ir, &false_res, error);
-    fprintf(out_stream, ":FIRST_NOT_ZERO_%d" LOTS_TABS "%% END OF FIRST OR OPERAND\n\n", *label_spot);
+    // :FIRST_NOT_ZERO
 
-    *label_spot++;
-
-    TranslateNodeToIR(ir, tree, node->right, tables, ram_spot, error);
+    TranslateNodeToIR(ir, tree, node->right, tables, labels, ram_spot, error);
 
     IRInsert(ir, &pop_op, error);
     IRInsert(ir, &cmp_op, error);
-    PrintWithTabs(out_stream, TABS_AMT, "je :SECOND_ZERO_%d", *label_spot);
-    IRInsert(ir, &true_res, error);
-    PrintWithTabs(out_stream, TABS_AMT, "jmp :SECOND_NOT_ZERO_%d\n", *label_spot);
-    fprintf(out_stream, ":SECOND_ZERO_%d\n", *label_spot);
-    IRInsert(ir, &false_res, error);
-    fprintf(out_stream, ":SECOND_NOT_ZERO_%d" LOTS_TABS "%% END OF SECOND OR OPERAND\n\n", *label_spot);
 
-    *label_spot++;
+    jmp_zero.refer_to = ir->size + 3;
+    IRInsert(ir, &jmp_zero, error); // je :SECOND_ZERO
+    IRInsert(ir, &true_res, error);
+
+    jmp_not_zero.refer_to = ir->size + 2;
+    IRInsert(ir, &jmp_not_zero, error); // jmp :SECOND__NOT_ZERO
+    // :SECOND_ZERO
+    IRInsert(ir, &false_res, error);
+    // :SECOND_NOT_ZERO
 
     instruction_t res1 = {.code = InstructionCode::ID_POP_XMM,
                               .type1 = ArgumentType::REGISTER,
@@ -477,17 +512,50 @@ static void TranslateOrToAsm(ir_t* ir, const tree_t* tree, const Node* node, Sta
     IRInsert(ir, &res2, error);
     IRInsert(ir, &add, error);
     IRInsert(ir, &cmp_op, error);
-    PrintWithTabs(out_stream, TABS_AMT, "je :OR_TRUE_%d\n", *label_spot);
+
+    instruction_t or_false = {  .code = InstructionCode::ID_JE,
+                                .need_patch = true,
+                                .refer_to   = ir->size + 3};
+    IRInsert(ir, &or_false, error); // je :OR_FALSE
+
     IRInsert(ir, &true_res, error);
-    PrintWithTabs(out_stream, TABS_AMT, "jmp :OR_FALSE_%d\n", *label_spot);
-    fprintf(out_stream, ":OR_TRUE_%d\n", *label_spot);
+
+    instruction_t or_true  = {  .code = InstructionCode::ID_JMP,
+                                .need_patch = true,
+                                .refer_to   = ir->size + 2};
+    IRInsert(ir, &or_true, error); // jmp :OR_TRUE
+    // :OR_FALSE
     IRInsert(ir, &false_res, error);
-    fprintf(out_stream, ":OR_FALSE_%d" LOTS_TABS "%% END OF OR OPERATION\n\n", *label_spot);
-
-    *label_spot++;
-
+    // :OR_TRUE
 }
 
+// -----------------------------------------------------------
+
+void FillLabelsTable(const tree_t* tree, labels_table_t* labels, error_t* error)
+{
+    assert(tree);
+    assert(error);
+
+    ir_t* ir = IRCtor(FAKE_IR_CAP, error);
+
+    Stack_t tables = {};
+    StackCtor(&tables);
+
+    nametable_t* global = MakeNametable();
+    StackPush(&tables, global);
+
+    ir->size++; // jmp :_0_
+
+    int ram_spot = INIT_RAM;
+
+    TranslateNodeToIR(ir, tree, tree->root, &tables, labels, &ram_spot, error);
+
+    instruction_t hlt = {.code = InstructionCode::ID_HLT};
+    IRInsert(ir, &hlt, error);
+
+    IRDtor(ir);
+    StackDtor(&tables);
+}
 
 
 

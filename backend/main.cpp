@@ -8,6 +8,7 @@
 #include "common/input_and_output.h"
 #include "backend.h"
 #include "ir.h"
+#include "labels_table.h"
 
 static const size_t IR_SIZE = 1012;
 
@@ -33,14 +34,16 @@ int main(const int argc, const char* argv[])
 
     DUMP_TREE(&tree);
 
+    labels_table_t* labels = LabelsTableCtor();
+
+    FillLabelsTable(&tree, labels, &error);
+
     ir_t* intermediate_rep = IRCtor(IR_SIZE, &error);
     EXIT_IF_ERROR(&error);
 
-    //MoveTreeToIR(&tree, intermediate_rep, &error);
+    MoveTreeToIR(&tree, intermediate_rep, labels, &error);
 
-    TranslateToAsm(&tree, out, &error);
-
-    fclose(out);
+    LabelsTableDtor(labels);
     TreeDtor(&tree);
     IRDtor(intermediate_rep);
 }

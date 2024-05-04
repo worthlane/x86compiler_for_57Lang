@@ -4,6 +4,8 @@
 #include "stack/nametable.h"
 #include "common/errors.h"
 
+static const size_t FAKE_IR_CAP = 0;
+
 #define DEF_CMD(name, ...) \
           ID_##name,
 
@@ -47,7 +49,7 @@ enum class ArgumentType
 {
     NONE = 0,
 
-    VALUE,
+    NUM,
     REGISTER,
     RAM,
 };
