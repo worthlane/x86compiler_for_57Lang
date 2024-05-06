@@ -203,3 +203,12 @@ void DumpArgument(FILE* fp, const ArgumentType type, const int data)
     }
 }
 
+// ---------------------------------------------------------------
+
+bool IsRegister(const int reg)
+{
+    if (instr.arg1 >= 0 && instr.arg1 < REG_AMT)
+        return true;
+    else
+        return false;
+}

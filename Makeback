@@ -25,7 +25,7 @@ EXPRESSION_SOURCES = tree.cpp visual.cpp tree_output.cpp tree_input.cpp
 EXPRESSION_DIR     = tree
 EXPRESSION_OBJECTS = $(EXPRESSION_SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
 
-BACKEND_SOURCES = main.cpp backend.cpp ir.cpp
+BACKEND_SOURCES = main.cpp backend.cpp ir.cpp translate.cpp
 BACKEND_DIR     = backend
 BACKEND_OBJECTS = $(BACKEND_SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
 

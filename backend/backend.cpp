@@ -71,6 +71,7 @@ void MoveTreeToIR(const tree_t* tree, ir_t* ir, nametable_t* labels, error_t* er
 #define DEF_OP(name, is_char, symb, action, is_calc, asm)   \
                 case Operators::name:                       \
                     asm
+                    break;
 
 static void TranslateNodeToIR(ir_t* ir, const tree_t* tree, const Node* node,
                               Stack_t* tables, nametable_t* labels, int* ram_spot, error_t* error)

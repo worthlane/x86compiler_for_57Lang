@@ -76,6 +76,8 @@ enum class ERRORS
 
     INVALID_STACK,
 
+    INVALID_IR,
+
     /// unknown error
     UNKNOWN
 };

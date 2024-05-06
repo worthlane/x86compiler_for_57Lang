@@ -18,7 +18,7 @@ _out:       vcvttss2si rdi, xmm0            ; getting integrer part
             mov rdi, DOT_PRINT
             call PrintChar                  ; print dot
 
-            vsubss xmm0, xmm1, xmm0         ; mod(xmm0) < 1
+            vsubss xmm0, xmm0, xmm1         ; mod(xmm0) < 1
 
             mov rdi, MULTIPLIER
             vcvtsi2ss xmm1, rdi
