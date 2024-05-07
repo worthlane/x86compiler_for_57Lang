@@ -9,23 +9,6 @@ static const size_t MIN_CAPACITY = 128;
 
 static void IRRealloc(ir_t* ir, size_t new_capacity, error_t* error);
 
-static inline int PrintWithTabs(FILE* fp, const size_t tabs_amt, const char *format, ...)
-{
-    for (size_t i = 0; i < tabs_amt; i++)
-    {
-        fprintf(fp, "\t");
-    }
-
-    va_list arg;
-    int done;
-
-    va_start (arg, format);
-    done = vfprintf(fp, format, arg);
-    va_end (arg);
-
-    return done;
-}
-
 // ---------------------------------------------------------------
 
 ir_t* IRCtor(const size_t size, error_t* error)
@@ -128,7 +111,7 @@ void IRInsert(ir_t* ir, const instruction_t* instr, error_t* error)
 
 // ---------------------------------------------------------------
 
-#define DEF_CMD(name)   \
+#define DEF_CMD(name, ...)   \
             case InstructionCode::ID_##name:                       \
                 fprintf(fp, #name);                                 \
                 break;
@@ -145,7 +128,7 @@ void IRDump(FILE* fp, ir_t* ir)
     {
         instruction_t elem = ir->array[i];
 
-        fprintf(fp, "[%lu] { ", i);
+        fprintf(fp, "[%lu] (%d) { ", i, elem.address);
 
         switch (elem.code)
         {
@@ -205,9 +188,21 @@ void DumpArgument(FILE* fp, const ArgumentType type, const int data)
 
 // ---------------------------------------------------------------
 
+void DumpRAMArgument(FILE* fp, const int data)
+{
+    char sign = '+';
+
+    if (data < 0)
+        sign = '-';
+
+    fprintf(fp, "[rbp %c %d]", sign, abs(data));
+}
+
+// ---------------------------------------------------------------
+
 bool IsRegister(const int reg)
 {
-    if (instr.arg1 >= 0 && instr.arg1 < REG_AMT)
+    if (reg >= 0 && reg < REG_AMT)
         return true;
     else
         return false;

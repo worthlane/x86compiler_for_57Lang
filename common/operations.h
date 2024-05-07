@@ -8,6 +8,14 @@
 
 #ifdef DEF_CONSTS
 
+static const instruction_t POP_VAL0 = { .code = InstructionCode::ID_POP_XMM,
+                                        .type1 = ArgumentType::REGISTER,
+                                        .arg1  = XMM0};
+
+static const instruction_t PUSH_VAL0 = { .code = InstructionCode::ID_PUSH_XMM,
+                                        .type1 = ArgumentType::REGISTER,
+                                        .arg1  = XMM0};
+
 static const instruction_t POP_VAL1 = { .code = InstructionCode::ID_POP_XMM,
                                         .type1 = ArgumentType::REGISTER,
                                         .arg1  = XMM1};
@@ -270,6 +278,8 @@ DEF_OP(READ, false, "57>>", (0), false,
 
     int ram_id = GetNameRamIdFromStack(tables, NODE_NAME(node->left));
 
+    IRInsert(ir, &PUSH_VAL0, error);
+
     instruction_t pop_ram = {};
 
     pop_ram.code  = InstructionCode::ID_POP_XMM;
@@ -284,8 +294,7 @@ DEF_OP(PRINT, false, "57<<", (0), false,
 {
     TranslateNodeToIR(ir, tree, node->left, tables, labels, ram_spot, error);
 
-    // что то с out сделать
-
+    IRInsert(ir, &POP_VAL0, error);
     IRInsert(ir, &OUT_INSTR, error);
     break;
 })

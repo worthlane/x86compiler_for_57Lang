@@ -8,10 +8,11 @@
 #include "common/input_and_output.h"
 #include "backend.h"
 #include "ir.h"
+#include "translate.h"
 
 static const size_t IR_SIZE = 1012;
 
-static const char* BYTES_FILE = "spu/assets/asm_code.txt";
+static const char* ASM_FILE = "assets/asm_code.txt";
 
 int main(const int argc, const char* argv[])
 {
@@ -42,7 +43,12 @@ int main(const int argc, const char* argv[])
 
     MoveTreeToIR(&tree, intermediate_rep, labels, &error);
 
+    TranslateIrToX86(ASM_FILE, intermediate_rep, &error);
+    EXIT_IF_ERROR(&error);
+
     IRDump(stdout, intermediate_rep);
+
+    //printf("ABOBA\n");
 
     TreeDtor(&tree);
     IRDtor(intermediate_rep);

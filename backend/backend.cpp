@@ -20,7 +20,7 @@ static const int INIT_RAM = -16;
 static const int RAM_STEP = -16;
 
 static const int ARG_RAM_STEP = 16;
-static const int ARG_INIT_RAM = 16;
+static const int ARG_INIT_RAM = 24;
 
 static int GetNameRamIdFromStack(const Stack_t* stk, const char* name);
 
@@ -70,7 +70,7 @@ void MoveTreeToIR(const tree_t* tree, ir_t* ir, nametable_t* labels, error_t* er
 
 #define DEF_OP(name, is_char, symb, action, is_calc, asm)   \
                 case Operators::name:                       \
-                    asm
+                    asm                                     \
                     break;
 
 static void TranslateNodeToIR(ir_t* ir, const tree_t* tree, const Node* node,
@@ -161,12 +161,12 @@ static void TranslateNodeToIR(ir_t* ir, const tree_t* tree, const Node* node,
                                             .arg2  = RSP};
             IRInsert(ir, &stk_save, error);     // mov rdi, rsp
 
+            TranslateNodeToIR(ir, tree, node->left->left, tables, labels, ram_spot, error);
+
             instruction_t rdi_save  = { .code  = InstructionCode::ID_PUSH,
                                             .type1 = ArgumentType::REGISTER,
                                             .arg1  = RDI};
             IRInsert(ir, &rdi_save, error); // push rdi
-
-            TranslateNodeToIR(ir, tree, node->left->left, tables, labels, ram_spot, error);
 
             instruction_t call = {  .code  = InstructionCode::ID_CALL,
                                     .need_patch = true,
@@ -211,6 +211,13 @@ static void TranslateAssignToIR(ir_t* ir, const tree_t* tree, const Node* node,
 
     int ram_id = GetNameRamIdFromStack(tables, NODE_NAME(node->left));
 
+    if (ram_id != UNKNOWN_VAL)
+    {
+        instruction_t pop_ram = {   .code  = InstructionCode::ID_POP_XMM,
+                                .type1 = ArgumentType::RAM,
+                                .arg1  = ram_id};
+        IRInsert(ir, &pop_ram, error);
+    }
     if (ram_id == UNKNOWN_VAL)
     {
         InsertPairInTable(LOCAL_TABLE(tables), NODE_NAME(node->left), *ram_spot);
@@ -220,11 +227,6 @@ static void TranslateAssignToIR(ir_t* ir, const tree_t* tree, const Node* node,
 
         //LOCAL_TABLE(tables)->list[id].ram_id = ram_id;
     }
-
-    instruction_t pop_ram = {   .code  = InstructionCode::ID_POP_XMM,
-                                .type1 = ArgumentType::RAM,
-                                .arg1  = ram_id};
-    IRInsert(ir, &pop_ram, error);
 }
 
 //-----------------------------------------------------------------------------------------------------

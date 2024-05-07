@@ -6,6 +6,49 @@
 #include "translate.h"
 #include "common/input_and_output.h"
 
+static const char* STD_LIBRARY_PATH = "stdlib.s";
+
+static const size_t TABS_AMT = 6;
+
+static void PatchIRX86(ir_t* ir, error_t* error);
+static void FillIRAddrX86(ir_t* ir, error_t* error);
+static void DumpIRtoX86(FILE* out_stream, ir_t* ir, error_t* error);
+
+static inline int PrintWithTabs(FILE* fp, const char *format, ...)
+{
+    for (size_t i = 0; i < TABS_AMT; i++)
+    {
+        fprintf(fp, "\t");
+    }
+
+    va_list arg;
+    int done;
+
+    va_start (arg, format);
+    done = vfprintf(fp, format, arg);
+    va_end (arg);
+
+    return done;
+}
+
+// ------------------------------------------------------
+
+static inline void DumpHeader(FILE* out_stream)
+{
+    fprintf(out_stream, "section .text\n"
+                        "global _start\n"
+                        "_start:\n\n");
+}
+
+// ------------------------------------------------------
+
+static inline void DumpInclude(FILE* out_stream)
+{
+    fprintf(out_stream, "\n%%include \"%s\"\n", STD_LIBRARY_PATH);
+}
+
+// ------------------------------------------------------
+
 void TranslateIrToX86(const char* file_name, ir_t* ir, error_t* error)
 {
     FillIRAddrX86(ir, error);
@@ -14,25 +57,29 @@ void TranslateIrToX86(const char* file_name, ir_t* ir, error_t* error)
     PatchIRX86(ir, error);
     BREAK_IF_ERROR(error);
 
-    FILE* out_stream = OpenFile(TREE_FILE, "w", error);
+    // IRDump(stdout, ir);
+
+    FILE* out_stream = OpenFile(file_name, "w", error);
     BREAK_IF_ERROR(error);
 
     DumpIRtoX86(out_stream, ir, error);
-    BREAK_IF_ERROR(error);
 
-    fclose(out_stream)
+    fclose(out_stream);
 }
 
 // -----------------------------------------------------------------------------
 
-#define DEF_CMD(name, ...) \
+#define DEF_CMD(name, asm, size_upd, ...) \
+        case InstructionCode::ID_##name:                        \
+            size_upd                                                 \
+            break;
 
 
 static void FillIRAddrX86(ir_t* ir, error_t* error)
 {
     assert(ir);
 
-    if (ir->cap = FAKE_IR_CAP)
+    if (ir->cap == FAKE_IR_CAP)
     {
         error->code = (int) ERRORS::INVALID_IR;
         SetErrorData(error, "CAN NOT TRANSLATE FAKE IR TO X86\n");
@@ -44,6 +91,8 @@ static void FillIRAddrX86(ir_t* ir, error_t* error)
     for (size_t i = 0; i < ir->size; i++)
     {
         instruction_t instr = ir->array[i];
+
+        ir->array[i].address = address;
 
         switch (instr.code)
         {
@@ -65,7 +114,7 @@ static void PatchIRX86(ir_t* ir, error_t* error)
 {
     assert(ir);
 
-    if (ir->cap = FAKE_IR_CAP)
+    if (ir->cap == FAKE_IR_CAP)
     {
         error->code = (int) ERRORS::INVALID_IR;
         SetErrorData(error, "CAN NOT TRANSLATE FAKE IR TO X86\n");
@@ -78,29 +127,32 @@ static void PatchIRX86(ir_t* ir, error_t* error)
 
         if (instr.need_patch)
         {
-            instr.type1 = ArgumentType::NUM;
-            instr.arg1  = ir->array[instr.refet_to].address;
+            ir->array[i].type1 = ArgumentType::NUM;
+            ir->array[i].arg1  = ir->array[instr.refer_to].address;
         }
     }
 }
 
 // -----------------------------------------------------------------------------
 
-#define DEF_CMD(name, asm)                                      \
+#define DEF_CMD(name, asm, ...)                                      \
         case InstructionCode::ID_##name:                        \
-            asm
+            asm                                                 \
+            break;
 
 
 static void DumpIRtoX86(FILE* out_stream, ir_t* ir, error_t* error)
 {
     assert(ir);
 
-    if (ir->cap = FAKE_IR_CAP)
+    if (ir->cap == FAKE_IR_CAP)
     {
         error->code = (int) ERRORS::INVALID_IR;
         SetErrorData(error, "CAN NOT TRANSLATE FAKE IR TO X86\n");
         return;
     }
+
+    DumpHeader(out_stream);
 
     int address = 0;
 
@@ -118,6 +170,10 @@ static void DumpIRtoX86(FILE* out_stream, ir_t* ir, error_t* error)
                 return;
         }
     }
+
+    DumpInclude(out_stream);
 }
 
 #undef DEF_CMD
+
+

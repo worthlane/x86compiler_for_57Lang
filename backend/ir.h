@@ -63,6 +63,7 @@ enum class ArgumentType
 };
 
 void DumpArgument(FILE* fp, const ArgumentType type, const int data);
+void DumpRAMArgument(FILE* fp, const int data);
 
 struct instruction_t
 {

@@ -1,0 +1,64 @@
+section .text
+global _start
+_start:
+
+						call 65
+						call _hlt
+						push rbp
+						mov rbp, rsp
+						vmovss xmm5, [rbp + 24]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+						vmovss xmm0, [rsp]
+						add rsp, 16
+						call _out
+						mov rbx, 228
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+						vmovss xmm0, [rsp]
+						add rsp, 16
+						mov rsp, rbp
+						pop rbp
+						ret
+						push rbp
+						mov rbp, rsp
+						mov rbx, 0
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+						call _in
+						sub rsp, 16
+						vmovss [rsp], xmm0
+						vmovss xmm5, [rsp]
+						add rsp, 16
+						vmovss [rbp - 16], xmm5
+						mov rdi, rsp
+						vmovss xmm5, [rbp - 16]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+						push rdi
+						call 5
+						pop rdi
+						mov rsp, rdi
+						sub rsp, 16
+						vmovss [rsp], xmm0
+						vmovss xmm5, [rsp]
+						add rsp, 16
+						vmovss [rbp - 16], xmm5
+						vmovss xmm5, [rbp - 16]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+						vmovss xmm0, [rsp]
+						add rsp, 16
+						call _out
+						vmovss xmm5, [rbp - 16]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+						vmovss xmm0, [rsp]
+						add rsp, 16
+						mov rsp, rbp
+						pop rbp
+						ret
+
+%include "stdlib.s"
