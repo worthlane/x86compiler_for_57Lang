@@ -50,7 +50,7 @@ ir_t* IRCtor(const size_t size, error_t* error)
 
 void IRDtor(ir_t* ir)
 {
-    if (ir->cap != FAKE_IR_CAP)
+    if (!FakeIR(ir))
         free(ir->array);
 
     free(ir);
@@ -88,7 +88,7 @@ static void IRRealloc(ir_t* ir, size_t new_capacity, error_t* error)
 
 void IRInsert(ir_t* ir, const instruction_t* instr, error_t* error)
 {
-    if (ir->cap == FAKE_IR_CAP)   // FAKE IR
+    if (FakeIR(ir))   // FAKE IR
     {
         ir->size++;
         return;
@@ -118,7 +118,7 @@ void IRInsert(ir_t* ir, const instruction_t* instr, error_t* error)
 
 void IRDump(FILE* fp, ir_t* ir)
 {
-    if (ir->cap == FAKE_IR_CAP)   // FAKE IR
+    if (FakeIR(ir))   // FAKE IR
     {
         fprintf(fp, "FAKE IR (%lu)\n", ir->size);
         return;
@@ -206,4 +206,11 @@ bool IsRegister(const int reg)
         return true;
     else
         return false;
+}
+
+// ---------------------------------------------------------------
+
+bool FakeIR(const ir_t* ir)
+{
+    return (ir->cap == FAKE_IR_CAP) ? true : false;
 }

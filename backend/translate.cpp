@@ -79,7 +79,7 @@ static void FillIRAddrX86(ir_t* ir, error_t* error)
 {
     assert(ir);
 
-    if (ir->cap == FAKE_IR_CAP)
+    if (FakeIR(ir))
     {
         error->code = (int) ERRORS::INVALID_IR;
         SetErrorData(error, "CAN NOT TRANSLATE FAKE IR TO X86\n");
@@ -114,7 +114,7 @@ static void PatchIRX86(ir_t* ir, error_t* error)
 {
     assert(ir);
 
-    if (ir->cap == FAKE_IR_CAP)
+    if (FakeIR(ir))
     {
         error->code = (int) ERRORS::INVALID_IR;
         SetErrorData(error, "CAN NOT TRANSLATE FAKE IR TO X86\n");
@@ -128,7 +128,7 @@ static void PatchIRX86(ir_t* ir, error_t* error)
         if (instr.need_patch)
         {
             ir->array[i].type1 = ArgumentType::NUM;
-            ir->array[i].arg1  = ir->array[instr.refer_to].address;
+            ir->array[i].arg1  = ir->array[instr.refer_to].address - instr.address - 1;
         }
     }
 }
@@ -145,7 +145,7 @@ static void DumpIRtoX86(FILE* out_stream, ir_t* ir, error_t* error)
 {
     assert(ir);
 
-    if (ir->cap == FAKE_IR_CAP)
+    if (FakeIR(ir))
     {
         error->code = (int) ERRORS::INVALID_IR;
         SetErrorData(error, "CAN NOT TRANSLATE FAKE IR TO X86\n");
@@ -169,6 +169,8 @@ static void DumpIRtoX86(FILE* out_stream, ir_t* ir, error_t* error)
                 SetErrorData(error, "UNKNOWN CODE INSTRUCTION IN (%lu) CELL\n", i);
                 return;
         }
+
+        fprintf(out_stream, "\n");
     }
 
     DumpInclude(out_stream);

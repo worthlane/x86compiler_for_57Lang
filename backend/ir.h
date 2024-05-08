@@ -98,6 +98,8 @@ void    IRInsert(ir_t* ir, const instruction_t* instr, error_t* error);
 
 void IRDump(FILE* fp, ir_t* ir);
 
+bool FakeIR(const ir_t* ir);
+
 
 
 #endif

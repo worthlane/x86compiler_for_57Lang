@@ -80,10 +80,13 @@ static void TranslateNodeToIR(ir_t* ir, const tree_t* tree, const Node* node,
     assert(ir);
 
     if (node == nullptr)
+    {
         return;
+    }
 
     if (node->type == NodeType::NUM)
     {
+
         instruction_t instr = {.code  = InstructionCode::ID_PUSH_XMM,
                                .type1 = ArgumentType::NUM,
                                .arg1  = (int) node->value.val};
@@ -214,8 +217,8 @@ static void TranslateAssignToIR(ir_t* ir, const tree_t* tree, const Node* node,
     if (ram_id != UNKNOWN_VAL)
     {
         instruction_t pop_ram = {   .code  = InstructionCode::ID_POP_XMM,
-                                .type1 = ArgumentType::RAM,
-                                .arg1  = ram_id};
+                                    .type1 = ArgumentType::RAM,
+                                    .arg1  = ram_id};
         IRInsert(ir, &pop_ram, error);
     }
     if (ram_id == UNKNOWN_VAL)

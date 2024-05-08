@@ -9,7 +9,7 @@ DEF_CMD(HLT,
     PrintWithTabs(out_stream, "call _hlt\n");
 },
 {
-
+    address += 5;
 })
 
 DEF_CMD(OUT,
@@ -17,7 +17,7 @@ DEF_CMD(OUT,
     PrintWithTabs(out_stream, "call _out\n");
 },
 {
-
+    address += 5;
 })
 
 DEF_CMD(IN,
@@ -25,7 +25,7 @@ DEF_CMD(IN,
     PrintWithTabs(out_stream, "call _in\n");
 },
 {
-
+    address += 5;
 })
 
 DEF_CMD(POP,
@@ -148,7 +148,6 @@ DEF_CMD(PUSH_XMM,
         fprintf(out_stream, "\n");
         PrintWithTabs(out_stream, "sub rsp, 16\n");
         PrintWithTabs(out_stream, "vmovss [rsp], xmm5\n");
-
     }
     else
     {
@@ -161,7 +160,10 @@ DEF_CMD(PUSH_XMM,
     if (instr.type1 == ArgumentType::REGISTER)
         address += 9;
     else if (instr.type1 == ArgumentType::NUM)
+    {
+        // TODO mov
         address += 19;
+    }
     else if (instr.type1 == ArgumentType::RAM)
         address += 14;
     else
@@ -181,18 +183,30 @@ DEF_CMD(CMP,
         return;
     }
 
-    if (!IsRegister(instr.arg1) || !IsRegister(instr.arg2))
+    if (instr.type2 == ArgumentType::REGISTER)
     {
-        error->code = (int) ERRORS::INVALID_IR;
-        SetErrorData(error, "INVALID REGISTER CODE IN IR (%lu)\n", i);
-        return;
-    }
+        if (!IsRegister(instr.arg2))
+        {
+            error->code = (int) ERRORS::INVALID_IR;
+            SetErrorData(error, "INVALID REGISTER CODE IN IR (%lu)\n", i);
+            return;
+        }
 
-    PrintWithTabs(out_stream, "vucomiss %s, %s\n",
-                REGISTERS_STR[instr.arg2], REGISTERS_STR[instr.arg1]);
+        PrintWithTabs(out_stream, "vucomiss %s, %s\n",
+                    REGISTERS_STR[instr.arg1], REGISTERS_STR[instr.arg2]);
+    }
+    else if (instr.type2 == ArgumentType::NUM)
+    {
+        PrintWithTabs(out_stream, "mov rbx, %d\n", instr.arg2);
+        PrintWithTabs(out_stream, "vcvtsi2ss xmm5, rbx\n");
+        PrintWithTabs(out_stream, "vucomiss %s, xmm5\n", REGISTERS_STR[instr.arg1]);
+    }
 },
 {
-    address += 4;
+    if (instr.type2 == ArgumentType::REGISTER)
+        address += 4;
+    else
+        address += 14;
 })
 
 DEF_CMD(MOV,
@@ -336,10 +350,17 @@ DEF_CMD(DIV,
 
 DEF_CMD(SQRT,
 {
+    if (instr.type1 != ArgumentType::REGISTER ||  instr.type1 != ArgumentType::REGISTER)
+    {
+        error->code = (int) ERRORS::INVALID_IR;
+        SetErrorData(error, "INVALID INSTRUCTION IN IR (%lu)\n", i);
+        return;
+    }
 
+    PrintWithTabs(out_stream, "sqrtss %s, %s\n", REGISTERS_STR[instr.arg1], REGISTERS_STR[instr.arg1]);
 },
 {
-
+    address += 4;
 })
 
 // ............. JMP ..............
@@ -356,7 +377,7 @@ DEF_CMD(JMP,
     PrintWithTabs(out_stream, "jmp %d\n", instr.arg1);
 },
 {
-    address += 6;
+    address += 5;
 })
 
 DEF_CMD(JA,
@@ -371,7 +392,7 @@ DEF_CMD(JA,
     PrintWithTabs(out_stream, "ja %d\n", instr.arg1);
 },
 {
-    address += 6;
+    address += 5;
 })
 
 DEF_CMD(JAE,
@@ -386,7 +407,7 @@ DEF_CMD(JAE,
     PrintWithTabs(out_stream, "jae %d\n", instr.arg1);
 },
 {
-    address += 6;
+    address += 5;
 })
 
 DEF_CMD(JB,
@@ -401,7 +422,7 @@ DEF_CMD(JB,
     PrintWithTabs(out_stream, "jb %d\n", instr.arg1);
 },
 {
-    address += 6;
+    address += 5;
 })
 
 DEF_CMD(JBE,
@@ -416,7 +437,7 @@ DEF_CMD(JBE,
     PrintWithTabs(out_stream, "jbe %d\n", instr.arg1);
 },
 {
-    address += 6;
+    address += 5;
 })
 
 DEF_CMD(JNE,
@@ -431,7 +452,7 @@ DEF_CMD(JNE,
     PrintWithTabs(out_stream, "jne %d\n", instr.arg1);
 },
 {
-    address += 6;
+    address += 5;
 })
 
 DEF_CMD(JE,
@@ -446,7 +467,7 @@ DEF_CMD(JE,
     PrintWithTabs(out_stream, "je %d\n", instr.arg1);
 },
 {
-    address += 6;
+    address += 5;
 })
 
 DEF_CMD(CALL,

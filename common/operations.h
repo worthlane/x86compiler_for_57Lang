@@ -12,6 +12,10 @@ static const instruction_t POP_VAL0 = { .code = InstructionCode::ID_POP_XMM,
                                         .type1 = ArgumentType::REGISTER,
                                         .arg1  = XMM0};
 
+static const instruction_t SQRT = { .code = InstructionCode::ID_SQRT,
+                                        .type1 = ArgumentType::REGISTER,
+                                        .arg1  = XMM0};
+
 static const instruction_t PUSH_VAL0 = { .code = InstructionCode::ID_PUSH_XMM,
                                         .type1 = ArgumentType::REGISTER,
                                         .arg1  = XMM0};
@@ -160,7 +164,11 @@ DEF_OP(SIN, false, "$1#", ( sin( NUMBER_1 )), true,
 
 DEF_OP(SQRT, false, "57#", ( sqrt( NUMBER_1 )), true,
 {
-    assert(false && "THIS COMMAND DOES NOT SUPPORT NOW");
+    TranslateNodeToIR(ir, tree, node->left, tables, labels, ram_spot, error);
+
+    IRInsert(ir, &POP_VAL0, error);
+    IRInsert(ir, &SQRT, error);
+    IRInsert(ir, &PUSH_VAL0, error);
 })
 
 DEF_OP(COS, false, "<0$", ( cos( NUMBER_1 )), true,
@@ -188,7 +196,8 @@ DEF_OP(IF, false, "57?", (0), false,
     TranslateNodeToIR(ir, tree, node->right, tables, labels, ram_spot, error);
     StackPop(tables);
 
-    ir->array[jmp_false_pos].refer_to = ir->size;
+    if (!FakeIR(ir))
+        ir->array[jmp_false_pos].refer_to = ir->size;
     // :FALSE_COND
 
     break;
@@ -225,7 +234,8 @@ DEF_OP(WHILE, false, "1000_7", (0), false,
 
     IRInsert(ir, &jmp_start, error); // jmp :WHILE_START
 
-    ir->array[break_jmp_pos].refer_to = ir->size;
+    if (!FakeIR(ir))
+        ir->array[break_jmp_pos].refer_to = ir->size;
     // :QUIT_CYCLE
 
     break;
@@ -313,6 +323,7 @@ DEF_OP(LINE_END, true, "\n", (0), false,
 {
     TranslateNodeToIR(ir, tree, node->left, tables, labels, ram_spot, error);
     TranslateNodeToIR(ir, tree, node->right, tables, labels, ram_spot, error);
+
     break;
 })
 DEF_OP(BLOCK_END, false, ".57", (0), false, {})
