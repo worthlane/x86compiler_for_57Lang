@@ -191,10 +191,14 @@ DEF_OP(IF, false, "57?", (0), false,
 
     IRInsert(ir, &jmp_false, error); // je :FALSE_COND
 
+    int prev_ram_spot = *ram_spot;
+
     nametable_t* local = MakeNametable();
     StackPush(tables, local);
     TranslateNodeToIR(ir, tree, node->right, tables, labels, ram_spot, error);
     StackPop(tables);
+
+    *ram_spot = prev_ram_spot;
 
     if (!FakeIR(ir))
         ir->array[jmp_false_pos].refer_to = ir->size;
@@ -222,10 +226,14 @@ DEF_OP(WHILE, false, "1000_7", (0), false,
 
     IRInsert(ir, &jmp_break, error); // je :QUIT_CYCLE
 
+    int prev_ram_spot = *ram_spot;
+
     nametable_t* local = MakeNametable();
     StackPush(tables, local);
     TranslateNodeToIR(ir, tree, node->right, tables, labels, ram_spot, error);
     StackPop(tables);
+
+    *ram_spot = prev_ram_spot;
 
     instruction_t jmp_start = {};
     jmp_start.code       = InstructionCode::ID_JMP;

@@ -2,7 +2,7 @@ section .text
 global _start
 _start:
 
-						call 1605
+						call 2038
 
 						call _hlt
 
@@ -273,7 +273,81 @@ _start:
 
 						call _out
 
+						mov rbx, 0
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm5, [rbp + 40]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vsubss xmm1, xmm2, xmm1
+
+						sub rsp, 16
+						vmovss [rsp], xmm1
+
 						vmovss xmm5, [rbp - 16]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm0, [rsp]
+						add rsp, 16
+
+						vsqrtss xmm0, xmm0
+
+						sub rsp, 16
+						vmovss [rsp], xmm0
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vaddss xmm1, xmm2, xmm1
+
+						sub rsp, 16
+						vmovss [rsp], xmm1
+
+						mov rbx, 2
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm5, [rbp + 24]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vmulss xmm1, xmm2, xmm1
+
+						sub rsp, 16
+						vmovss [rsp], xmm1
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vdivss xmm1, xmm2, xmm1
+
+						sub rsp, 16
+						vmovss [rsp], xmm1
+
+						vmovss xmm5, [rbp - 32]
 						sub rsp, 16
 						vmovss [rsp], xmm5
 
@@ -282,10 +356,79 @@ _start:
 
 						call _out
 
-						mov rbx, 228
+						mov rbx, 0
 						vcvtsi2ss xmm5, rbx
 						sub rsp, 16
 						vmovss [rsp], xmm5
+
+						vmovss xmm5, [rbp + 40]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vsubss xmm1, xmm2, xmm1
+
+						sub rsp, 16
+						vmovss [rsp], xmm1
+
+						vmovss xmm5, [rbp - 16]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm0, [rsp]
+						add rsp, 16
+
+						vsqrtss xmm0, xmm0
+
+						sub rsp, 16
+						vmovss [rsp], xmm0
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vsubss xmm1, xmm2, xmm1
+
+						sub rsp, 16
+						vmovss [rsp], xmm1
+
+						mov rbx, 2
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm5, [rbp + 24]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vmulss xmm1, xmm2, xmm1
+
+						sub rsp, 16
+						vmovss [rsp], xmm1
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vdivss xmm1, xmm2, xmm1
+
+						sub rsp, 16
+						vmovss [rsp], xmm1
 
 						vmovss xmm5, [rbp - 48]
 						sub rsp, 16
@@ -697,7 +840,7 @@ _start:
 
 						push rdi
 
-						call -2137
+						call -2570
 
 						pop rdi
 
