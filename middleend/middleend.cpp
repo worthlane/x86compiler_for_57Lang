@@ -67,29 +67,10 @@ static void SimplifyTreeConstants(tree_t* tree, Node* node, int* transform_cnt, 
     if (error->code != (int) MiddleendErrors::NONE)
         return;
 
-    if (node->left == nullptr)
-    {
-        if (TYPE(node->right) == NodeType::NUM)
-        {
-            UniteSubtree(tree, node, error);
-            *transform_cnt++;
-        }
-
+    if (node->left == nullptr || node->right == nullptr)
         return;
-    }
 
-    if (node->right == nullptr)
-    {
-        if (TYPE(node->left) == NodeType::NUM)
-        {
-            UniteSubtree(tree, node, error);
-            *transform_cnt++;
-        }
-
-        return;
-    }
-
-    if (TYPE(node->left) == NodeType::NUM && node->right->type == NodeType::NUM)
+    if (TYPE(node->left) == NodeType::NUM && TYPE(node->right) == NodeType::NUM)
     {
         UniteSubtree(tree, node, error);
         *transform_cnt++;
