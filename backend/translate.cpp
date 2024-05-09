@@ -128,7 +128,11 @@ static void PatchIRX86(ir_t* ir, error_t* error)
         if (instr.need_patch)
         {
             ir->array[i].type1 = ArgumentType::NUM;
-            ir->array[i].arg1  = ir->array[instr.refer_to].address - instr.address - 1;
+
+            if (instr.code == InstructionCode::ID_CALL || instr.code == InstructionCode::ID_JMP)
+                ir->array[i].arg1  = ir->array[instr.refer_to].address - instr.address - 1;
+            else
+                ir->array[i].arg1  = ir->array[instr.refer_to].address - instr.address - 2;
         }
     }
 }

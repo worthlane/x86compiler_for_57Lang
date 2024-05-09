@@ -272,7 +272,7 @@ DEF_CMD(SUB,
     }
 
     PrintWithTabs(out_stream, "vsubss %s, %s, %s\n",
-            REGISTERS_STR[instr.arg1], REGISTERS_STR[instr.arg1], REGISTERS_STR[instr.arg2]);
+            REGISTERS_STR[instr.arg1], REGISTERS_STR[instr.arg2], REGISTERS_STR[instr.arg1]);
 },
 {
     address += 4;
@@ -295,7 +295,7 @@ DEF_CMD(ADD,
     }
 
     PrintWithTabs(out_stream, "vaddss %s, %s, %s\n",
-            REGISTERS_STR[instr.arg1], REGISTERS_STR[instr.arg1], REGISTERS_STR[instr.arg2]);
+            REGISTERS_STR[instr.arg1], REGISTERS_STR[instr.arg2], REGISTERS_STR[instr.arg1]);
 },
 {
     address += 4;
@@ -318,7 +318,7 @@ DEF_CMD(MUL,
     }
 
     PrintWithTabs(out_stream, "vmulss %s, %s, %s\n",
-            REGISTERS_STR[instr.arg1], REGISTERS_STR[instr.arg1], REGISTERS_STR[instr.arg2]);
+            REGISTERS_STR[instr.arg1], REGISTERS_STR[instr.arg2], REGISTERS_STR[instr.arg1]);
 },
 {
     address += 4;
@@ -341,7 +341,7 @@ DEF_CMD(DIV,
     }
 
     PrintWithTabs(out_stream, "vdivss %s, %s, %s\n",
-            REGISTERS_STR[instr.arg1], REGISTERS_STR[instr.arg1], REGISTERS_STR[instr.arg2]);
+            REGISTERS_STR[instr.arg1], REGISTERS_STR[instr.arg2], REGISTERS_STR[instr.arg1]);
 },
 {
     address += 4;
@@ -392,7 +392,7 @@ DEF_CMD(JA,
     PrintWithTabs(out_stream, "ja %d\n", instr.arg1);
 },
 {
-    address += 5;
+    address += 6;
 })
 
 DEF_CMD(JAE,
@@ -407,7 +407,7 @@ DEF_CMD(JAE,
     PrintWithTabs(out_stream, "jae %d\n", instr.arg1);
 },
 {
-    address += 5;
+    address += 6;
 })
 
 DEF_CMD(JB,
@@ -422,7 +422,7 @@ DEF_CMD(JB,
     PrintWithTabs(out_stream, "jb %d\n", instr.arg1);
 },
 {
-    address += 5;
+    address += 6;
 })
 
 DEF_CMD(JBE,
@@ -437,7 +437,7 @@ DEF_CMD(JBE,
     PrintWithTabs(out_stream, "jbe %d\n", instr.arg1);
 },
 {
-    address += 5;
+    address += 6;
 })
 
 DEF_CMD(JNE,
@@ -452,7 +452,7 @@ DEF_CMD(JNE,
     PrintWithTabs(out_stream, "jne %d\n", instr.arg1);
 },
 {
-    address += 5;
+    address += 6;
 })
 
 DEF_CMD(JE,
@@ -467,7 +467,7 @@ DEF_CMD(JE,
     PrintWithTabs(out_stream, "je %d\n", instr.arg1);
 },
 {
-    address += 5;
+    address += 6;
 })
 
 DEF_CMD(CALL,

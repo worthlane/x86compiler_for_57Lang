@@ -2,7 +2,7 @@ section .text
 global _start
 _start:
 
-						call 374
+						call 1972
 
 						call _hlt
 
@@ -10,7 +10,72 @@ _start:
 
 						mov rbp, rsp
 
+						vmovss xmm5, [rbp + 40]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm5, [rbp + 40]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vmulss xmm1, xmm2, xmm1
+
+						sub rsp, 16
+						vmovss [rsp], xmm1
+
+						mov rbx, 4
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
 						vmovss xmm5, [rbp + 24]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vmulss xmm1, xmm2, xmm1
+
+						sub rsp, 16
+						vmovss [rsp], xmm1
+
+						vmovss xmm5, [rbp + 56]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vmulss xmm1, xmm2, xmm1
+
+						sub rsp, 16
+						vmovss [rsp], xmm1
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vsubss xmm1, xmm2, xmm1
+
+						sub rsp, 16
+						vmovss [rsp], xmm1
+
+						vmovss xmm5, [rbp - 16]
 						sub rsp, 16
 						vmovss [rsp], xmm5
 
@@ -58,11 +123,311 @@ _start:
 						vmovss xmm0, [rsp]
 						add rsp, 16
 
+						call _out
+
+						vmovss xmm5, [rbp - 16]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						mov rbx, 0
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vucomiss xmm1, xmm2
+
+						je 28
+
+						mov rbx, 0
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						jmp 23
+
+						mov rbx, 1
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						mov rbx, 0
+						vcvtsi2ss xmm5, rbx
+						vucomiss xmm1, xmm5
+
+						je 224
+
+						mov rbx, 1
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm0, [rsp]
+						add rsp, 16
+
+						call _out
+
+						mov rbx, 0
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm5, [rbp + 40]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vsubss xmm1, xmm2, xmm1
+
+						sub rsp, 16
+						vmovss [rsp], xmm1
+
+						mov rbx, 2
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm5, [rbp + 24]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vmulss xmm1, xmm2, xmm1
+
+						sub rsp, 16
+						vmovss [rsp], xmm1
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vdivss xmm1, xmm2, xmm1
+
+						sub rsp, 16
+						vmovss [rsp], xmm1
+
+						vmovss xmm5, [rbp - 32]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm0, [rsp]
+						add rsp, 16
+
+						call _out
+
+						mov rbx, 2
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm0, [rsp]
+						add rsp, 16
+
+						call _out
+
+						mov rbx, 0
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm5, [rbp + 40]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vsubss xmm1, xmm2, xmm1
+
+						sub rsp, 16
+						vmovss [rsp], xmm1
+
+						vmovss xmm5, [rbp - 16]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm0, [rsp]
+						add rsp, 16
+
+						sqrtss xmm0, xmm0
+
+						sub rsp, 16
+						vmovss [rsp], xmm0
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vaddss xmm1, xmm2, xmm1
+
+						sub rsp, 16
+						vmovss [rsp], xmm1
+
+						mov rbx, 2
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm5, [rbp + 24]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vmulss xmm1, xmm2, xmm1
+
+						sub rsp, 16
+						vmovss [rsp], xmm1
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vdivss xmm1, xmm2, xmm1
+
+						sub rsp, 16
+						vmovss [rsp], xmm1
+
+						vmovss xmm5, [rbp - 48]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm0, [rsp]
+						add rsp, 16
+
+						call _out
+
+						mov rbx, 0
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm5, [rbp + 40]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vsubss xmm1, xmm2, xmm1
+
+						sub rsp, 16
+						vmovss [rsp], xmm1
+
+						vmovss xmm5, [rbp - 16]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm0, [rsp]
+						add rsp, 16
+
+						sqrtss xmm0, xmm0
+
+						sub rsp, 16
+						vmovss [rsp], xmm0
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vsubss xmm1, xmm2, xmm1
+
+						sub rsp, 16
+						vmovss [rsp], xmm1
+
+						mov rbx, 2
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm5, [rbp + 24]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vmulss xmm1, xmm2, xmm1
+
+						sub rsp, 16
+						vmovss [rsp], xmm1
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vdivss xmm1, xmm2, xmm1
+
+						sub rsp, 16
+						vmovss [rsp], xmm1
+
+						vmovss xmm5, [rbp - 64]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm0, [rsp]
+						add rsp, 16
+
+						call _out
+
+						mov rbx, 2
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm0, [rsp]
+						add rsp, 16
+
 						mov rsp, rbp
 
 						pop rbp
 
 						ret
+
+						push rbp
+
+						mov rbp, rsp
 
 						vmovss xmm5, [rbp + 24]
 						sub rsp, 16
@@ -102,9 +467,109 @@ _start:
 						vcvtsi2ss xmm5, rbx
 						vucomiss xmm1, xmm5
 
-						je 37
+						je 369
+
+						vmovss xmm5, [rbp + 40]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						mov rbx, 0
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vucomiss xmm1, xmm2
+
+						je 28
+
+						mov rbx, 0
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						jmp 23
 
 						mov rbx, 1
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						mov rbx, 0
+						vcvtsi2ss xmm5, rbx
+						vucomiss xmm1, xmm5
+
+						je 37
+
+						mov rbx, 8
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm0, [rsp]
+						add rsp, 16
+
+						call _out
+
+						vmovss xmm5, [rbp + 40]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						mov rbx, 0
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vucomiss xmm1, xmm2
+
+						jne 28
+
+						mov rbx, 0
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						jmp 23
+
+						mov rbx, 1
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						mov rbx, 0
+						vcvtsi2ss xmm5, rbx
+						vucomiss xmm1, xmm5
+
+						je 37
+
+						mov rbx, 0
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm0, [rsp]
+						add rsp, 16
+
+						call _out
+
+						mov rbx, 0
 						vcvtsi2ss xmm5, rbx
 						sub rsp, 16
 						vmovss [rsp], xmm5
@@ -118,8 +583,51 @@ _start:
 
 						ret
 
-						mov rbx, 2
+						mov rbx, 0
 						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm5, [rbp + 40]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vsubss xmm1, xmm2, xmm1
+
+						sub rsp, 16
+						vmovss [rsp], xmm1
+
+						vmovss xmm5, [rbp + 24]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vdivss xmm1, xmm2, xmm1
+
+						sub rsp, 16
+						vmovss [rsp], xmm1
+
+						vmovss xmm5, [rbp - 16]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm0, [rsp]
+						add rsp, 16
+
+						call _out
+
+						vmovss xmm5, [rbp - 16]
 						sub rsp, 16
 						vmovss [rsp], xmm5
 
@@ -141,6 +649,21 @@ _start:
 						sub rsp, 16
 						vmovss [rsp], xmm5
 
+						mov rbx, 0
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						mov rbx, 0
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						mov rbx, 0
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
 						call _in
 
 						sub rsp, 16
@@ -150,15 +673,77 @@ _start:
 						add rsp, 16
 						vmovss [rbp - 16], xmm5
 
-						mov rdi, rsp
+						call _in
+
+						sub rsp, 16
+						vmovss [rsp], xmm0
+
+						vmovss xmm5, [rsp]
+						add rsp, 16
+						vmovss [rbp - 32], xmm5
+
+						call _in
+
+						sub rsp, 16
+						vmovss [rsp], xmm0
+
+						vmovss xmm5, [rsp]
+						add rsp, 16
+						vmovss [rbp - 48], xmm5
 
 						vmovss xmm5, [rbp - 16]
 						sub rsp, 16
 						vmovss [rsp], xmm5
 
+						mov rbx, 0
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vucomiss xmm1, xmm2
+
+						je 28
+
+						mov rbx, 0
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						jmp 23
+
+						mov rbx, 1
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						mov rbx, 0
+						vcvtsi2ss xmm5, rbx
+						vucomiss xmm1, xmm5
+
+						je 68
+
+						mov rdi, rsp
+
+						vmovss xmm5, [rbp - 48]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm5, [rbp - 32]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
 						push rdi
 
-						call -435
+						call -997
 
 						pop rdi
 
@@ -167,17 +752,80 @@ _start:
 						sub rsp, 16
 						vmovss [rsp], xmm0
 
+						vmovss xmm5, [rsp]
+						add rsp, 16
+						vmovss [rbp - 64], xmm5
+
+						vmovss xmm5, [rbp - 16]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						mov rbx, 0
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						vmovss xmm2, [rsp]
+						add rsp, 16
+
+						vucomiss xmm1, xmm2
+
+						jne 28
+
+						mov rbx, 0
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						jmp 23
+
+						mov rbx, 1
+						vcvtsi2ss xmm5, rbx
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						vmovss xmm1, [rsp]
+						add rsp, 16
+
+						mov rbx, 0
+						vcvtsi2ss xmm5, rbx
+						vucomiss xmm1, xmm5
+
+						je 82
+
+						mov rdi, rsp
+
+						vmovss xmm5, [rbp - 48]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
 						vmovss xmm5, [rbp - 32]
 						sub rsp, 16
 						vmovss [rsp], xmm5
 
-						vmovss xmm0, [rsp]
+						vmovss xmm5, [rbp - 16]
+						sub rsp, 16
+						vmovss [rsp], xmm5
+
+						push rdi
+
+						call -2504
+
+						pop rdi
+
+						mov rsp, rdi
+
+						sub rsp, 16
+						vmovss [rsp], xmm0
+
+						vmovss xmm5, [rsp]
 						add rsp, 16
+						vmovss [rbp - 64], xmm5
 
-						call _out
-
-						mov rbx, 0
-						vcvtsi2ss xmm5, rbx
+						vmovss xmm5, [rbp - 64]
 						sub rsp, 16
 						vmovss [rsp], xmm5
 
