@@ -205,7 +205,7 @@ static inline void DrawNodes(FILE* dotf, const tree_t* tree, const Node* node, c
     FillNodeColor(dotf, node);
 
     fprintf(dotf, " rank = %d, label=\" "
-                  "{ node: %p | parent: %p | { type: " ,rank, node, node->parent);
+                  "{ type: " ,rank, node, node->parent);
 
     PrintNodeDataType(dotf, node->type);
 
@@ -213,7 +213,7 @@ static inline void DrawNodes(FILE* dotf, const tree_t* tree, const Node* node, c
 
     PrintNodeData(dotf, tree, node);
 
-    fprintf(dotf, "} | { left: %p| right: %p } }\"]\n", node->left, node->right);
+    fprintf(dotf, "}\"]\n", node->left, node->right);
 
     DrawNodes(dotf, tree, node->left, rank + 1);
     DrawNodes(dotf, tree, node->right, rank + 1);

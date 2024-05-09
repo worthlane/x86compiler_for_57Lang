@@ -257,7 +257,7 @@ DEF_CMD(MOV,
 
 DEF_CMD(SUB,
 {
-    if (instr.type1 != ArgumentType::REGISTER ||  instr.type1 != ArgumentType::REGISTER)
+    if (instr.type1 != ArgumentType::REGISTER ||  instr.type2 != ArgumentType::REGISTER)
     {
         error->code = (int) ERRORS::INVALID_IR;
         SetErrorData(error, "INVALID INSTRUCTION IN IR (%lu)\n", i);
@@ -357,7 +357,7 @@ DEF_CMD(SQRT,
         return;
     }
 
-    PrintWithTabs(out_stream, "sqrtss %s, %s\n", REGISTERS_STR[instr.arg1], REGISTERS_STR[instr.arg1]);
+    PrintWithTabs(out_stream, "vsqrtss %s, %s\n", REGISTERS_STR[instr.arg1], REGISTERS_STR[instr.arg1]);
 },
 {
     address += 4;

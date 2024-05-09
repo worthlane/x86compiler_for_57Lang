@@ -11,7 +11,22 @@ section .text
 
 global _out                                 ; predefined entry point name for ld
 
-_out:       vcvttss2si rdi, xmm0            ; getting integrer part
+_out:       mov rbx, 0
+            vcvtsi2ss xmm5, rbx
+            vucomiss xmm0, xmm5
+
+            jae Positive
+
+            mov rdi, SIGN_PRINT                        ; print minus
+            call PrintChar
+
+            mov rbx, -1
+            vcvtsi2ss xmm5, rbx
+            vmulss xmm0, xmm0, xmm5
+
+Positive:
+
+            vcvttss2si rdi, xmm0            ; getting integrer part
             vcvtsi2ss xmm1, rdi             ; xmm1 = int_part
             call PrintDec                   ; print integrer part
 
@@ -47,8 +62,8 @@ PrintDec:           push rbx
                     test edi, SIGN_BIT                  ; check if number is negative
                     jz PositiveDec
                     push rdi
-                    mov rdi, SIGN_PRINT                        ; print minus if negative
-                    call PrintChar
+                    ;mov rdi, SIGN_PRINT                        ; print minus if negative
+                    ;call PrintChar
                     add rbx, rax
                     pop rdi
 

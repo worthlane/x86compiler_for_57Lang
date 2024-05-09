@@ -11,7 +11,8 @@ section .text
 
 global _in                                 ; predefined entry point name for ld
 
-_in:        mov rdx, 0
+_in:        mov qword [neg_flag], 0
+            mov rdx, 0
             vcvtsi2ss xmm0, rdx
 
             call CheckMinus                 ; flag changint is num is negative
