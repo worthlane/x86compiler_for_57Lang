@@ -1,6 +1,3 @@
-section .data
-
-
 section .text
 
 global _hlt                                 ; predefined entry point name for ld

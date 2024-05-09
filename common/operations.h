@@ -62,9 +62,15 @@ static const instruction_t STK_FRAME_RET = {    .code  = InstructionCode::ID_POP
                                                 .type1 = ArgumentType::REGISTER,
                                                 .arg1  = RBP};
 
-static const instruction_t OUT_INSTR = {.code = InstructionCode::ID_OUT};
+static const instruction_t OUT_INSTR = {.code = InstructionCode::ID_OUT,
+                                       .need_patch = true,
+                                       .type1 = ArgumentType::NUM,
+                                       .arg1  = OUT_ADDR};
 
-static const instruction_t IN_INSTR = {.code = InstructionCode::ID_IN};
+static const instruction_t IN_INSTR = {.code = InstructionCode::ID_IN,
+                                       .need_patch = true,
+                                       .type1 = ArgumentType::NUM,
+                                       .arg1  = IN_ADDR};
 
 static const instruction_t POP_OP = {   .code = InstructionCode::ID_POP_XMM,
                                         .type1 = ArgumentType::REGISTER,

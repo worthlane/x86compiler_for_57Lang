@@ -37,7 +37,8 @@ static inline void DumpHeader(FILE* out_stream)
 {
     fprintf(out_stream, "section .text\n"
                         "global _start\n"
-                        "_start:\n\n");
+                        "%%include \"%s\"\n"
+                        "_start:\n\n", STD_LIBRARY_PATH);
 }
 
 // ------------------------------------------------------
@@ -127,12 +128,19 @@ static void PatchIRX86(ir_t* ir, error_t* error)
 
         if (instr.need_patch)
         {
-            ir->array[i].type1 = ArgumentType::NUM;
-
-            if (instr.code == InstructionCode::ID_CALL || instr.code == InstructionCode::ID_JMP)
-                ir->array[i].arg1  = ir->array[instr.refer_to].address - instr.address - 1;
+            if (instr.type1 == ArgumentType::NUM)
+            {
+                ir->array[i].arg1  = instr.arg1 - instr.address - 1;
+            }
             else
-                ir->array[i].arg1  = ir->array[instr.refer_to].address - instr.address - 2;
+            {
+                ir->array[i].type1 = ArgumentType::NUM;
+
+                if (instr.code == InstructionCode::ID_CALL || instr.code == InstructionCode::ID_JMP)
+                    ir->array[i].arg1  = ir->array[instr.refer_to].address - instr.address - 1;
+                else
+                    ir->array[i].arg1  = ir->array[instr.refer_to].address - instr.address - 2;
+            }
         }
     }
 }
@@ -177,7 +185,7 @@ static void DumpIRtoX86(FILE* out_stream, ir_t* ir, error_t* error)
         fprintf(out_stream, "\n");
     }
 
-    DumpInclude(out_stream);
+    //DumpInclude(out_stream);
 }
 
 #undef DEF_CMD

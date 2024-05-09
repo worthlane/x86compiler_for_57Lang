@@ -6,7 +6,7 @@
 
 DEF_CMD(HLT,
 {
-    PrintWithTabs(out_stream, "call _hlt\n");
+    PrintWithTabs(out_stream, "call %d ; call _hlt\n", instr.arg1);
 },
 {
     address += 5;
@@ -14,7 +14,7 @@ DEF_CMD(HLT,
 
 DEF_CMD(OUT,
 {
-    PrintWithTabs(out_stream, "call _out\n");
+    PrintWithTabs(out_stream, "call %d ; call _out\n", instr.arg1);
 },
 {
     address += 5;
@@ -22,7 +22,7 @@ DEF_CMD(OUT,
 
 DEF_CMD(IN,
 {
-    PrintWithTabs(out_stream, "call _in\n");
+    PrintWithTabs(out_stream, "call %d ; call _in\n", instr.arg1);
 },
 {
     address += 5;

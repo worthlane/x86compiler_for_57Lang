@@ -1,10 +1,11 @@
 section .text
 global _start
+%include "stdlib.s"
 _start:
 
 						call 2038
 
-						call _hlt
+						call -19 ; call _hlt
 
 						push rbp
 
@@ -123,7 +124,7 @@ _start:
 						vmovss xmm0, [rsp]
 						add rsp, 16
 
-						call _out
+						call -891 ; call _out
 
 						mov rbx, 0
 						vcvtsi2ss xmm5, rbx
@@ -187,7 +188,7 @@ _start:
 						vmovss xmm0, [rsp]
 						add rsp, 16
 
-						call _out
+						call -1090 ; call _out
 
 						mov rbx, 0
 						vcvtsi2ss xmm5, rbx
@@ -247,7 +248,7 @@ _start:
 						vmovss xmm0, [rsp]
 						add rsp, 16
 
-						call _out
+						call -1277 ; call _out
 
 						mov rbx, 1
 						vcvtsi2ss xmm5, rbx
@@ -271,7 +272,7 @@ _start:
 						vmovss xmm0, [rsp]
 						add rsp, 16
 
-						call _out
+						call -1343 ; call _out
 
 						mov rbx, 0
 						vcvtsi2ss xmm5, rbx
@@ -354,7 +355,7 @@ _start:
 						vmovss xmm0, [rsp]
 						add rsp, 16
 
-						call _out
+						call -1597 ; call _out
 
 						mov rbx, 0
 						vcvtsi2ss xmm5, rbx
@@ -437,7 +438,7 @@ _start:
 						vmovss xmm0, [rsp]
 						add rsp, 16
 
-						call _out
+						call -1851 ; call _out
 
 						mov rbx, 2
 						vcvtsi2ss xmm5, rbx
@@ -545,7 +546,7 @@ _start:
 						vmovss xmm0, [rsp]
 						add rsp, 16
 
-						call _out
+						call -2187 ; call _out
 
 						vmovss xmm5, [rbp + 40]
 						sub rsp, 16
@@ -595,7 +596,7 @@ _start:
 						vmovss xmm0, [rsp]
 						add rsp, 16
 
-						call _out
+						call -2353 ; call _out
 
 						mov rbx, 0
 						vcvtsi2ss xmm5, rbx
@@ -653,7 +654,7 @@ _start:
 						vmovss xmm0, [rsp]
 						add rsp, 16
 
-						call _out
+						call -2523 ; call _out
 
 						vmovss xmm5, [rbp - 16]
 						sub rsp, 16
@@ -692,7 +693,7 @@ _start:
 						sub rsp, 16
 						vmovss [rsp], xmm5
 
-						call _in
+						call -2426 ; call _in
 
 						sub rsp, 16
 						vmovss [rsp], xmm0
@@ -701,7 +702,7 @@ _start:
 						add rsp, 16
 						vmovss [rbp - 16], xmm5
 
-						call _in
+						call -2454 ; call _in
 
 						sub rsp, 16
 						vmovss [rsp], xmm0
@@ -710,7 +711,7 @@ _start:
 						add rsp, 16
 						vmovss [rbp - 32], xmm5
 
-						call _in
+						call -2482 ; call _in
 
 						sub rsp, 16
 						vmovss [rsp], xmm0
@@ -866,5 +867,3 @@ _start:
 
 						ret
 
-
-%include "stdlib.s"

@@ -56,7 +56,10 @@ void MoveTreeToIR(const tree_t* tree, ir_t* ir, nametable_t* labels, error_t* er
                             .refer_to   = GetValueFromNameTable(labels, "_0_")};
     IRInsert(ir, &call, error);
 
-    instruction_t hlt = {.code = InstructionCode::ID_HLT};
+    instruction_t hlt = {.code = InstructionCode::ID_HLT,
+                         .need_patch = true,
+                         .type1 = ArgumentType::NUM,
+                         .arg1  = HLT_ADDR};
     IRInsert(ir, &hlt, error);
 
     int ram_spot = INIT_RAM;
