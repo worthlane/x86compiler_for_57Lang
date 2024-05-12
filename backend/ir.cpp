@@ -212,5 +212,23 @@ bool IsRegister(const int reg)
 
 bool FakeIR(const ir_t* ir)
 {
+    // FAKE COMMENT
+    // src: https://youtu.be/dQw4w9WgXcQ?si=A9m7Jc71ZI7o2ZAp
+    /*
+    // FAKE!!!!!!!!!!!!
+    // Борьба с фейками телеграм канал
+    // Подпишись!
+    // FAKE!!!!!!!!!!!!!
+    // EXTREME FAKE
+
+    enum FAKES{
+        FAKE_0 = 0,
+        FAKE_1 = 1,
+        FAKE_FAKE = 2,
+    };
+
+    return FAKE_FAKE if FAKE else FAKE_1;
+    */
+
     return (ir->cap == FAKE_IR_CAP) ? true : false;
 }
