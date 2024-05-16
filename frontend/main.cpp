@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "common/logs.h"
 #include "common/input_and_output.h"
@@ -39,6 +40,7 @@ int main(const int argc, const char* argv[])
     GetTreeFromTokens(&storage, &tree, &error);
     EXIT_IF_FRONTEND_ERROR;
 
+    PrintSignature(out_stream, data_file);
     PrintPrefixTree(out_stream, &tree);
 
     DUMP_TREE(&tree);

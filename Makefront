@@ -1,4 +1,4 @@
-CXX = g++-13
+CXX = g++
 EXECUTABLE = front
 CXXFLAGS  = -D _DEBUG -ggdb3 -std=c++17 -O0 -Wall -Wextra -Weffc++ -Waggressive-loop-optimizations \
 			-Wc++14-compat -Wmissing-declarations -Wcast-align -Wcast-qual -Wchar-subscripts       \
@@ -18,20 +18,25 @@ HOME = $(shell pwd)
 CXXFLAGS += -I $(HOME)
 
 IMAGE = img
-BUILD_DIR = build/bin
+BUILD_DIR   = build/bin
 OBJECTS_DIR = build/$(EXECUTABLE)
+
 EXPRESSION_SOURCES = tree.cpp visual.cpp tree_output.cpp
-EXPRESSION_DIR = tree
-FRONTEND_SOURCES = analysis.cpp syntax_parser.cpp frontend.cpp main.cpp
-FRONTEND_DIR = frontend
-COMMON_SOURCES = logs.cpp errors.cpp input_and_output.cpp file_read.cpp
-COMMON_DIR = common
-STACK_SOURCES = stack.cpp hash.cpp nametable.cpp
-STACK_DIR = stack
+EXPRESSION_DIR     = tree
 EXPRESSION_OBJECTS = $(EXPRESSION_SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
-COMMON_OBJECTS = $(COMMON_SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
+
+FRONTEND_SOURCES = analysis.cpp syntax_parser.cpp frontend.cpp main.cpp
+FRONTEND_DIR     = frontend
 FRONTEND_OBJECTS = $(FRONTEND_SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
+
+COMMON_SOURCES = logs.cpp errors.cpp input_and_output.cpp file_read.cpp
+COMMON_DIR     = common
+COMMON_OBJECTS = $(COMMON_SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
+
+STACK_SOURCES = stack.cpp hash.cpp nametable.cpp
+STACK_DIR     = stack
 STACK_OBJECTS = $(STACK_SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
+
 DOXYFILE = Doxyfile
 DOXYBUILD = doxygen $(DOXYFILE)
 

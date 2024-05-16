@@ -3,12 +3,12 @@
 #include <stdarg.h>
 #include <math.h>
 
-#include "translate.h"
+#include "x86_asm.h"
 #include "common/input_and_output.h"
 
-static const char* STD_LIBRARY_PATH = "stdlib.s";
+static const char* STD_LIBRARY_PATH = "std_lib/stdlib.s";
 
-static const size_t TABS_AMT = 6;
+static const size_t TABS_AMT = 4;
 
 static void PatchIRX86(ir_t* ir, error_t* error);
 static void FillIRAddrX86(ir_t* ir, error_t* error);

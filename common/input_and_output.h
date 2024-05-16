@@ -5,6 +5,9 @@
 
 #include "errors.h"
 
+static const size_t MAX_SIGNATURE_LEN = 100;
+static const char* DEFAULT_SIGNATURE = "a.out";
+
 static const size_t MAX_STRING_LEN  = 100;
 static const size_t MAX_COMMAND_LEN = 200;
 
@@ -20,5 +23,8 @@ FILE* OpenInputFile(const char* file_name, error_t* error);
 FILE* OpenOutputFile(const char* file_name, error_t* error);
 
 FILE* OpenFile(const char* file_name, const char* mode, error_t* error);
+
+void PrintSignature(FILE* out_stream, const char* data_file);
+const char* GetSignature(FILE* in_stream);
 
 #endif

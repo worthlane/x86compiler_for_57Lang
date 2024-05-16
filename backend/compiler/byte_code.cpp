@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include <stdlib.h>
 
 #include "byte_code.h"
 
@@ -13,7 +14,7 @@ static void ByteCodeRealloc(byte_code_t* stk, size_t new_capacity, error_t* erro
 byte_code_t* ByteCodeCtor(size_t size, error_t* error)
 {
     byte_code_t* code = (byte_code_t*) calloc(1, sizeof(byte_code_t));
-    uint8_t*     array = calloc(size, sizeof(uint8_t));
+    uint8_t*     array = (uint8_t*) calloc(size, sizeof(uint8_t));
 
     if (!code || !array)
     {
@@ -38,7 +39,6 @@ byte_code_t* ByteCodeCtor(size_t size, error_t* error)
 void ByteCodePush(byte_code_t* code, uint8_t cmd, error_t* error)
 {
     assert(code);
-    assert(buffer);
 
     if (code->size > code->capacity || code->size < 0)
     {
@@ -50,7 +50,7 @@ void ByteCodePush(byte_code_t* code, uint8_t cmd, error_t* error)
 
     if (code->capacity == code->size)
     {
-        StackRealloc(code, 2 * code->capacity, error);
+        ByteCodeRealloc(code, 2 * code->capacity, error);
 
         BREAK_IF_ERROR(error);
     }
@@ -84,10 +84,10 @@ static void ByteCodeRealloc(byte_code_t* code, size_t new_capacity, error_t* err
     else
         array = temp;
 
-    stk->array    = array;
-    stk->capacity = new_capacity;
+    code->array    = array;
+    code->capacity = new_capacity;
 
-    return OK;
+    return;
 }
 
 // ---------------------------------------------------------------------
@@ -103,5 +103,3 @@ void ByteCodeDtor(byte_code_t* code)
 }
 
 // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-#endif

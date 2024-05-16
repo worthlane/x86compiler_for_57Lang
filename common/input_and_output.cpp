@@ -2,11 +2,41 @@
 #include <assert.h>
 #include <stdarg.h>
 #include <time.h>
+#include <string.h>
 
 #include "input_and_output.h"
 #include "colorlib.h"
 
 static void ReadLine(FILE* fp, char* buf);
+
+//-----------------------------------------------------------------------------------------------------
+
+void PrintSignature(FILE* out_stream, const char* data_file)
+{
+    char signature[MAX_SIGNATURE_LEN] = "";
+    strncpy(signature, data_file, MAX_SIGNATURE_LEN);
+    char* extension_pos = strchr(signature, '.');
+
+    if (extension_pos == nullptr)
+        fprintf(out_stream, "%s ", DEFAULT_SIGNATURE);
+    else
+    {
+        *extension_pos = '\0';
+        fprintf(out_stream, "%s ", signature);
+    }
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+const char* GetSignature(FILE* in_stream)
+{
+    char* sign = (char*) calloc(MAX_SIGNATURE_LEN, sizeof(char));
+    assert(sign);
+
+    fscanf(in_stream, "%s", sign);
+
+    return sign;
+}
 
 //-----------------------------------------------------------------------------------------------------
 

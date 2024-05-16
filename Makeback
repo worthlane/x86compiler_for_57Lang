@@ -1,4 +1,4 @@
-CXX = g++-13
+CXX = g++
 EXECUTABLE = back
 CXXFLAGS  = -D _DEBUG -ggdb3 -std=c++17 -O0 -Wall -Wextra -Weffc++ -Waggressive-loop-optimizations \
 			-Wc++14-compat -Wmissing-declarations -Wcast-align -Wcast-qual -Wchar-subscripts       \
@@ -25,9 +25,13 @@ EXPRESSION_SOURCES = tree.cpp visual.cpp tree_output.cpp tree_input.cpp
 EXPRESSION_DIR     = tree
 EXPRESSION_OBJECTS = $(EXPRESSION_SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
 
-BACKEND_SOURCES = main.cpp backend.cpp ir.cpp translate.cpp x86_elf.cpp byte_code.cpp
+BACKEND_SOURCES = main.cpp backend.cpp
 BACKEND_DIR     = backend
 BACKEND_OBJECTS = $(BACKEND_SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
+
+COMPILER_SOURCES = ir.cpp x86_asm.cpp x86_elf.cpp byte_code.cpp
+COMPILER_DIR     = backend/compiler
+COMPILER_OBJECTS = $(COMPILER_SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
 
 COMMON_SOURCES = logs.cpp errors.cpp input_and_output.cpp file_read.cpp
 COMMON_DIR     = common
@@ -43,7 +47,7 @@ DOXYBUILD = doxygen $(DOXYFILE)
 .PHONY: all
 all: $(EXECUTABLE)
 
-$(EXECUTABLE): $(EXPRESSION_OBJECTS) $(COMMON_OBJECTS) $(BACKEND_OBJECTS) $(STACK_OBJECTS)
+$(EXECUTABLE): $(EXPRESSION_OBJECTS) $(COMMON_OBJECTS) $(BACKEND_OBJECTS) $(STACK_OBJECTS) $(COMPILER_OBJECTS)
 	$(CXX) $^ -o $@ $(CXXFLAGS)
 
 $(OBJECTS_DIR)/%.o : $(COMMON_DIR)/%.cpp
@@ -53,6 +57,9 @@ $(OBJECTS_DIR)/%.o : $(EXPRESSION_DIR)/%.cpp
 	$(CXX) -c $^ -o $@ $(CXXFLAGS)
 
 $(OBJECTS_DIR)/%.o : $(BACKEND_DIR)/%.cpp
+	$(CXX) -c $^ -o $@ $(CXXFLAGS)
+
+$(OBJECTS_DIR)/%.o : $(COMPILER_DIR)/%.cpp
 	$(CXX) -c $^ -o $@ $(CXXFLAGS)
 
 $(OBJECTS_DIR)/%.o : $(STACK_DIR)/%.cpp

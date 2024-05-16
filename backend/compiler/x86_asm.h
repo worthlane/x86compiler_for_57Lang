@@ -1,5 +1,5 @@
-#ifndef _TRANSLATE_H_
-#define _TRANSLATE_H_
+#ifndef _X86_ASM_H_
+#define _X86_ASM_H_
 
 #include "ir.h"
 

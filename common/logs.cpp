@@ -2,7 +2,7 @@
 #include <time.h>
 #include <assert.h>
 #include <stdarg.h>
-#include <strings.h>
+#include <string.h>
 
 #include "logs.h"
 

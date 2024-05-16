@@ -7,12 +7,10 @@
 #include "common/file_read.h"
 #include "common/input_and_output.h"
 #include "backend.h"
-#include "ir.h"
-#include "translate.h"
+#include "compiler/ir.h"
+#include "compiler/x86_asm.h"
 
 static const size_t IR_SIZE = 1012;
-
-static const char* ASM_FILE = "assets/asm_code.txt";
 
 int main(const int argc, const char* argv[])
 {
@@ -29,6 +27,9 @@ int main(const int argc, const char* argv[])
     tree_t tree = {};
     TreeCtor(&tree, &error);
 
+    char signature[MAX_SIGNATURE_LEN] = "";
+    BufScanfWord(&info, signature);
+
     TreePrefixRead(&info, &tree, &error);
     EXIT_IF_TREE_ERROR(&error);
 
@@ -43,7 +44,10 @@ int main(const int argc, const char* argv[])
 
     MoveTreeToIR(&tree, intermediate_rep, labels, &error);
 
-    TranslateIrToX86(ASM_FILE, intermediate_rep, &error);
+    char asm_file[MAX_SIGNATURE_LEN] = "";
+    sprintf(asm_file, "%s.s", signature);
+
+    TranslateIrToX86(asm_file, intermediate_rep, &error);
     EXIT_IF_ERROR(&error);
 
     IRDump(stdout, intermediate_rep);

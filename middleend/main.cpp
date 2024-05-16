@@ -15,14 +15,20 @@ int main(const int argc, const char* argv[])
 
     error_t error = {};
 
-    FILE* fp = OpenInputFile(TREE_FILE, &error);
-    EXIT_IF_ERROR(&error);
+    /*FILE* fp = OpenInputFile(TREE_FILE, &error);
+    EXIT_IF_ERROR(&error);*/
+
+    //const char* sign = GetSignature(fp);
+    //printf("%s\n", sign);
 
     LinesStorage info = {};
     CreateTextStorage(&info, &error, TREE_FILE);
 
     tree_t tree = {};
     TreeCtor(&tree, &error);
+
+    char signature[MAX_SIGNATURE_LEN] = "";
+    BufScanfWord(&info, signature);
 
     TreePrefixRead(&info, &tree, &error);
     EXIT_IF_TREE_ERROR(&error);
@@ -33,6 +39,7 @@ int main(const int argc, const char* argv[])
 
     FILE* out_stream = fopen(TREE_FILE, "w");
 
+    fprintf(out_stream, "%s ", signature);
     PrintPrefixTree(out_stream, &tree);
 
     fclose(out_stream);

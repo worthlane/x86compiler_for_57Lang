@@ -1,6 +1,6 @@
-FRONT = makefront
-BACK  = makeback
-MID   = makemid
+FRONT = Makefront
+BACK  = Makeback
+MID   = Makemid
 
 all: front back mid
 
