@@ -78,6 +78,8 @@ enum class ERRORS
 
     INVALID_IR,
 
+    BUFFER_OVERFLOW,
+
     /// unknown error
     UNKNOWN
 };

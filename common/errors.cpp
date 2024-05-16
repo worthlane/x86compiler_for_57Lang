@@ -62,6 +62,11 @@ int PrintError(FILE* fp, const void* err, const char* func, const char* file, co
             LOG_END();
             return (int) error->code;
 
+        case (ERRORS::BUFFER_OVERFLOW):
+            fprintf(fp, "BUFFER OVERFLOW<br>\n");
+            LOG_END();
+            return (int) error->code;
+
         case (ERRORS::UNKNOWN):
         // fall through
         default:
