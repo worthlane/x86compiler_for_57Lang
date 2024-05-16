@@ -1,0 +1,1188 @@
+     1                                  section .text
+     2                                  global _start
+     3                                  %include "std_lib/stdlib.s"
+     4                              <1> %include "std_lib/out.s"
+     5                              <2> SIGN_BIT equ 80000000h
+     6                              <2> MULTIPLIER equ 1000
+     7                              <2> 
+     8 00000000 303132333435363738- <2> DecOutput  db '0123456789-.', 0x0A
+     8 00000009 392D2E0A            <2>
+     9                              <2> 
+    10                              <2> SIGN_PRINT equ 10
+    11                              <2> DOT_PRINT  equ 11
+    12                              <2> NEW_LINE_PRINT equ 12
+    13                              <2> 
+    14                              <2> section .text
+    15                              <2> 
+    16                              <2> global _out                                 ; predefined entry point name for ld
+    17                              <2> 
+    18 0000000D BB00000000          <2> _out:       mov rbx, 0
+    19 00000012 C4E1D22AEB          <2>             vcvtsi2ss xmm5, rbx
+    20 00000017 C5F82EC5            <2>             vucomiss xmm0, xmm5
+    21                              <2> 
+    22 0000001B 731A                <2>             jae Positive
+    23                              <2> 
+    24 0000001D BF0A000000          <2>             mov rdi, SIGN_PRINT                        ; print minus
+    25 00000022 E891000000          <2>             call PrintChar
+    26                              <2> 
+    27 00000027 48C7C3FFFFFFFF      <2>             mov rbx, -1
+    28 0000002E C4E1D22AEB          <2>             vcvtsi2ss xmm5, rbx
+    29 00000033 C5FA59C5            <2>             vmulss xmm0, xmm0, xmm5
+    30                              <2> 
+    31                              <2> Positive:
+    32                              <2> 
+    33 00000037 C4E1FA2CF8          <2>             vcvttss2si rdi, xmm0            ; getting integrer part
+    34 0000003C C4E1F22ACF          <2>             vcvtsi2ss xmm1, rdi             ; xmm1 = int_part
+    35 00000041 E831000000          <2>             call PrintDec                   ; print integrer part
+    36                              <2> 
+    37 00000046 BF0B000000          <2>             mov rdi, DOT_PRINT
+    38 0000004B E868000000          <2>             call PrintChar                  ; print dot
+    39                              <2> 
+    40 00000050 C5FA5CC1            <2>             vsubss xmm0, xmm0, xmm1         ; mod(xmm0) < 1
+    41                              <2> 
+    42 00000054 BFE8030000          <2>             mov rdi, MULTIPLIER
+    43 00000059 C4E1F22ACF          <2>             vcvtsi2ss xmm1, rdi
+    44 0000005E C5F259C0            <2>             vmulss xmm0, xmm1, xmm0         ; getting first (MULTIPLIER / 10) digits
+    45 00000062 C4E1FA2CF8          <2>             vcvttss2si rdi, xmm0
+    46 00000067 E80B000000          <2>             call PrintDec                   ; print digits
+    47                              <2> 
+    48 0000006C BF0C000000          <2>             mov rdi, NEW_LINE_PRINT
+    49 00000071 E842000000          <2>             call PrintChar                  ; print new line
+    50                              <2> 
+    51 00000076 C3                  <2>             ret
+    52                              <2> 
+    53                              <2> ;:================================================
+    54                              <2> ; Prints dec number in console
+    55                              <2> ; Entry: rdi - dec number
+    56                              <2> ; Exit: rax - symbols printed
+    57                              <2> ; Destr: rcx
+    58                              <2> ;:================================================
+    59                              <2> 
+    60 00000077 53                  <2> PrintDec:           push rbx
+    61 00000078 52                  <2>                     push rdx
+    62 00000079 56                  <2>                     push rsi
+    63                              <2> 
+    64 0000007A 4831DB              <2>                     xor rbx, rbx                        ; init printed counter
+    65                              <2> 
+    66 0000007D F7C700000080        <2>                     test edi, SIGN_BIT                  ; check if number is negative
+    67 00000083 7407                <2>                     jz PositiveDec
+    68 00000085 57                  <2>                     push rdi
+    69                              <2>                     ;mov rdi, SIGN_PRINT                        ; print minus if negative
+    70                              <2>                     ;call PrintChar
+    71 00000086 4801C3              <2>                     add rbx, rax
+    72 00000089 5F                  <2>                     pop rdi
+    73                              <2> 
+    74 0000008A F7DF                <2>                     neg edi                             ; getting module
+    75                              <2> 
+    76 0000008C 4889F8              <2> PositiveDec:        mov rax, rdi
+    77 0000008F 4831C9              <2>                     xor rcx, rcx                        ; init digit counter
+    78                              <2> 
+    79 00000092 4831D2              <2> GetDecDigit:        xor rdx, rdx
+    80 00000095 BE0A000000          <2>                     mov rsi, 10                         ; the basis of the number system
+    81 0000009A 48F7F6              <2>                     div rsi
+    82                              <2> 
+    83 0000009D 52                  <2>                     push rdx                            ; saving symbol in stack
+    84                              <2> 
+    85 0000009E 48FFC1              <2>                     inc rcx
+    86                              <2> 
+    87 000000A1 4885C0              <2>                     test rax, rax
+    88 000000A4 75EC                <2>                     jnz GetDecDigit                     ; stop if rax == 0
+    89                              <2> 
+    90 000000A6 4801CB              <2>                     add rbx, rcx
+    91                              <2> 
+    92 000000A9 5F                  <2> PrintDecDigits:     pop rdi
+    93 000000AA E809000000          <2>                     call PrintChar                      ; get digits from stack and print them
+    94                              <2> 
+    95 000000AF E2F8                <2>                     loop PrintDecDigits
+    96                              <2> 
+    97 000000B1 4889D8              <2>                     mov rax, rbx
+    98                              <2> 
+    99 000000B4 5E                  <2>                     pop rsi
+   100 000000B5 5A                  <2>                     pop rdx
+   101 000000B6 5B                  <2>                     pop rbx
+   102 000000B7 C3                  <2>                     ret
+   103                              <2> 
+   104                              <2> ;------------------------------------------------
+   105                              <2> ; Prints char
+   106                              <2> ;
+   107                              <2> ; Entry: rdi - char
+   108                              <2> ; Exit: rax - symbols printed
+   109                              <2> ; Destr:
+   110                              <2> ;------------------------------------------------
+   111                              <2> 
+   112 000000B8 52                  <2> PrintChar:      push rdx
+   113 000000B9 53                  <2>                 push rbx
+   114 000000BA 51                  <2>                 push rcx
+   115 000000BB 56                  <2>                 push rsi
+   116                              <2> 
+   117 000000BC 48BE-               <2>                 mov rsi, DecOutput
+   117 000000BE [0000000000000000]  <2>
+   118 000000C6 4801FE              <2>                 add rsi, rdi
+   119 000000C9 B801000000          <2>                 mov rax, 0x01                               ; write64 (rdi, rsi, rdx) ... r10, r8, r9
+   120 000000CE BF01000000          <2>                 mov rdi, 1                                  ; stdout
+   121 000000D3 BA01000000          <2>                 mov rdx, 1                                  ; buffer size
+   122 000000D8 0F05                <2>                 syscall
+   123                              <2> 
+   124 000000DA 5E                  <2>                 pop rsi
+   125 000000DB 59                  <2>                 pop rcx
+   126 000000DC 5B                  <2>                 pop rbx
+   127 000000DD 5A                  <2>                 pop rdx
+   128 000000DE C3                  <2>                 ret
+   129                              <2> 
+   130                              <2> 
+   131                              <2> 
+     5                              <1> %include "std_lib/in.s"
+     6                              <2> section .data
+     7                              <2> 
+     8                              <2> UNKNOWN_LETTER equ -1
+     9                              <2> MINUS_TRUE equ 1
+    10                              <2> 
+    11 00000000 0000000000000000    <2> neg_flag dq 0
+    12                              <2> 
+    13 00000008 30303030            <2> BUFFER db '0000'
+    14                              <2> 
+    15                              <2> section .text
+    16                              <2> 
+    17                              <2> global _in                                 ; predefined entry point name for ld
+    18                              <2> 
+    19 000000DF 48C70425[00000000]- <2> _in:        mov qword [neg_flag], 0
+    19 000000E7 00000000            <2>
+    20 000000EB BA00000000          <2>             mov rdx, 0
+    21 000000F0 C4E1FA2AC2          <2>             vcvtsi2ss xmm0, rdx
+    22                              <2> 
+    23 000000F5 E8D7000000          <2>             call CheckMinus                 ; flag changint is num is negative
+    24                              <2> 
+    25 000000FA 4883FAFF            <2>             cmp rdx, UNKNOWN_LETTER         ; if first symbol is not digit and not minus - return 0
+    26 000000FE 744D                <2>             je Return
+    27                              <2> 
+    28 00000100 E875000000          <2>             call GetDec                     ; get integrer part
+    29                              <2> 
+    30 00000105 C4E1FA2AC2          <2>             vcvtsi2ss xmm0, rdx             ; xmm0 = integrer part
+    31                              <2> 
+    32 0000010A 4883FE2E            <2>             cmp rsi, '.'                    ; if no non-integrer part - return
+    33 0000010E 751F                <2>             jne NormalExit
+    34                              <2> 
+    35 00000110 4831D2              <2>             xor rdx, rdx
+    36 00000113 E862000000          <2>             call GetDec                     ; get non-integrer part
+    37                              <2> 
+    38 00000118 C4E1F22ACA          <2>             vcvtsi2ss xmm1, rdx             ; xmm1 = non-integrer part
+    39                              <2> 
+    40 0000011D E88C000000          <2>             call Pow
+    41 00000122 C4E1EA2AD0          <2>             vcvtsi2ss xmm2, rax             ; xmm2 = 10^(non-integrer len)
+    42                              <2> 
+    43 00000127 C5F25ECA            <2>             vdivss xmm1, xmm1, xmm2         ; xmm1 = non-integrer part / 10^(non-integrer len
+    44 0000012B C5F258C0            <2>             vaddss xmm0, xmm1, xmm0         ; sum integrer and non-integrer part
+    45                              <2> 
+    46 0000012F 48C7C6FFFFFFFF      <2> NormalExit: mov rsi, -1
+    47 00000136 C4E1E22ADE          <2>             vcvtsi2ss xmm3, rsi             ; xmm3 = -1
+    48                              <2> 
+    49 0000013B 488B3425[00000000]  <2>             mov rsi, qword [neg_flag]
+    50 00000143 4883FE01            <2>             cmp rsi, MINUS_TRUE
+    51 00000147 7504                <2>             jne Return
+    52                              <2> 
+    53 00000149 C5FA59C3            <2>             vmulss xmm0, xmm0, xmm3         ; if neg_flag == MINUS_TRUE -> xmm0 *= -1
+    54                              <2> 
+    55 0000014D C3                  <2> Return:     ret
+    56                              <2> 
+    57                              <2> 
+    58                              <2> ; =============================
+    59                              <2> ; Gets char ASCII
+    60                              <2> ; Entry:
+    61                              <2> ; Exit: rax - ASCII
+    62                              <2> ; Destr:
+    63                              <2> ; =============================
+    64                              <2> 
+    65 0000014E 56                  <2> GetChar:        push rsi
+    66 0000014F 57                  <2>                 push rdi
+    67 00000150 52                  <2>                 push rdx
+    68                              <2> 
+    69 00000151 48BE-               <2>                 mov rsi, BUFFER
+    69 00000153 [0800000000000000]  <2>
+    70 0000015B B800000000          <2>                 mov rax, 0x00                               ; read64 (rdi, rsi, rdx) ... r10, r8, r9
+    71 00000160 BF00000000          <2>                 mov rdi, 0                                  ; stdin
+    72 00000165 BA01000000          <2>                 mov rdx, 1                                  ; buffer size
+    73 0000016A 0F05                <2>                 syscall
+    74                              <2> 
+    75 0000016C 4831C0              <2>                 xor rax, rax
+    76 0000016F 8A0425[08000000]    <2>                 mov al, [BUFFER]
+    77                              <2> 
+    78 00000176 5A                  <2>                 pop rdx
+    79 00000177 5F                  <2>                 pop rdi
+    80 00000178 5E                  <2>                 pop rsi
+    81 00000179 C3                  <2>                 ret
+    82                              <2> 
+    83                              <2> 
+    84                              <2> ;:================================================
+    85                              <2> ; Gets dec number from console
+    86                              <2> ; Entry: rdx - first digit
+    87                              <2> ; Exit: rax - number_len, rdx - number, rsi - last char
+    88                              <2> ; Destr: rbx, ecx
+    89                              <2> ;:================================================
+    90                              <2> 
+    91 0000017A 4831DB              <2> GetDec:             xor rbx, rbx                        ; init printed counter
+    92                              <2> 
+    93 0000017D E8CCFFFFFF          <2> NewDigit:           call GetChar
+    94 00000182 4889C6              <2>                     mov rsi, rax                        ; rsi = char ASCII
+    95                              <2> 
+    96 00000185 3C30                <2>                     cmp al, '0'
+    97 00000187 7C21                <2>                     jl NotDigit
+    98                              <2> 
+    99 00000189 3C39                <2>                     cmp al, '9'
+   100 0000018B 7F1D                <2>                     jg NotDigit
+   101                              <2> 
+   102 0000018D 50                  <2>                     push rax
+   103                              <2> 
+   104 0000018E 89D0                <2>                     mov eax, edx
+   105 00000190 B90A000000          <2>                     mov ecx, 10
+   106 00000195 F7E1                <2>                     mul ecx                             ; EDX:EAX = EAX * 10
+   107                              <2> 
+   108 00000197 48C1E220            <2>                     shl rdx, 32
+   109 0000019B 01C2                <2>                     add edx, eax                        ; RDX = EDX:EAX
+   110                              <2> 
+   111 0000019D 58                  <2>                     pop rax
+   112                              <2> 
+   113 0000019E 4883E830            <2>                     sub rax, '0'
+   114 000001A2 4801C2              <2>                     add rdx, rax
+   115 000001A5 48FFC3              <2>                     inc rbx
+   116                              <2> 
+   117 000001A8 EBD3                <2>                     jmp NewDigit
+   118                              <2> 
+   119 000001AA 4889D8              <2> NotDigit:           mov rax, rbx
+   120 000001AD C3                  <2>                     ret
+   121                              <2> 
+   122                              <2> ;:================================================
+   123                              <2> ; 10 pow
+   124                              <2> ; Entry: ax - degree
+   125                              <2> ; Exit: rax - 10^ax
+   126                              <2> ; Destr:
+   127                              <2> ;:================================================
+   128                              <2> 
+   129 000001AE 51                  <2> Pow:            push rcx
+   130 000001AF 52                  <2>                 push rdx
+   131 000001B0 53                  <2>                 push rbx
+   132                              <2> 
+   133 000001B1 4889C1              <2>                 mov rcx, rax
+   134 000001B4 BA01000000          <2>                 mov rdx, 1                          ; 10^0
+   135                              <2> 
+   136 000001B9 89D0                <2> PowLoop:        mov eax, edx
+   137 000001BB BB0A000000          <2>                 mov ebx, 10
+   138 000001C0 F7E3                <2>                 mul ebx                             ; EDX:EAX = EAX * 10
+   139                              <2> 
+   140 000001C2 48C1E220            <2>                 shl rdx, 32
+   141 000001C6 01C2                <2>                 add edx, eax                        ; RDX = EDX:EAX
+   142                              <2> 
+   143 000001C8 E2EF                <2>                 loop PowLoop
+   144                              <2> 
+   145 000001CA 4889D0              <2>                 mov rax, rdx
+   146                              <2> 
+   147 000001CD 5B                  <2>                 pop rbx
+   148 000001CE 5A                  <2>                 pop rdx
+   149 000001CF 59                  <2>                 pop rcx
+   150 000001D0 C3                  <2>                 ret
+   151                              <2> 
+   152                              <2> ;:================================================
+   153                              <2> ; Changes neg_flag if needed
+   154                              <2> ; Entry:
+   155                              <2> ; Exit: rdx - first digit of num (UNKNOWN_LETTER if error)
+   156                              <2> ; Destr:
+   157                              <2> ;:================================================
+   158                              <2> 
+   159                              <2> 
+   160 000001D1 E878FFFFFF          <2> CheckMinus:     call GetChar
+   161 000001D6 4883F82D            <2>                 cmp rax, '-'
+   162 000001DA 750D                <2>                 jne PlusNum
+   163                              <2> 
+   164 000001DC 48FF0425[00000000]  <2>                 inc qword [neg_flag]                ; change flag if minus
+   165 000001E4 4831D2              <2>                 xor rdx, rdx
+   166 000001E7 EB1A                <2>                 jmp CheckExit
+   167                              <2> 
+   168 000001E9 48C7C2FFFFFFFF      <2> PlusNum:        mov rdx, UNKNOWN_LETTER
+   169                              <2> 
+   170 000001F0 4883F830            <2>                 cmp rax, '0'                        ; error if not digit
+   171 000001F4 7C0D                <2>                 jl CheckExit
+   172                              <2> 
+   173 000001F6 4883F839            <2>                 cmp rax, '9'                        ; error if not digit
+   174 000001FA 7F07                <2>                 jg CheckExit
+   175                              <2> 
+   176 000001FC 4883E830            <2>                 sub rax, '0'
+   177 00000200 4889C2              <2>                 mov rdx, rax                        ; rdx = first num digit
+   178                              <2> CheckExit:
+   179 00000203 C3                  <2>                 ret
+   180                              <2> 
+   181                              <2> 
+     6                              <1> %include "std_lib/hlt.s"
+     7                              <2> section .text
+     8                              <2> 
+     9                              <2> global _hlt                                 ; predefined entry point name for ld
+    10                              <2> 
+    11 00000204 B83C000000          <2> _hlt:       mov rax, 0x3c                               ; exit
+    12 00000209 BF00000000          <2>             mov rdi, 0                                  ; err_code
+    13 0000020E 0F05                <2>             syscall
+    14                              <2> 
+    15 00000210 C3                  <2>             ret
+     4                                  _start:
+     5                                  
+     6 00000211 E8(F6070000)            				call 2038
+     7                                  
+     8 00000216 E8(EDFFFFFF)            				call -19 ; call _hlt
+     9                                  
+    10 0000021B 55                      				push rbp
+    11                                  
+    12 0000021C 4889E5                  				mov rbp, rsp
+    13                                  
+    14 0000021F C5FA106D28              				vmovss xmm5, [rbp + 40]
+    15 00000224 4883EC10                				sub rsp, 16
+    16 00000228 C5FA112C24              				vmovss [rsp], xmm5
+    17                                  
+    18 0000022D C5FA106D28              				vmovss xmm5, [rbp + 40]
+    19 00000232 4883EC10                				sub rsp, 16
+    20 00000236 C5FA112C24              				vmovss [rsp], xmm5
+    21                                  
+    22 0000023B C5FA100C24              				vmovss xmm1, [rsp]
+    23 00000240 4883C410                				add rsp, 16
+    24                                  
+    25 00000244 C5FA101424              				vmovss xmm2, [rsp]
+    26 00000249 4883C410                				add rsp, 16
+    27                                  
+    28 0000024D C5EA59C9                				vmulss xmm1, xmm2, xmm1
+    29                                  
+    30 00000251 4883EC10                				sub rsp, 16
+    31 00000255 C5FA110C24              				vmovss [rsp], xmm1
+    32                                  
+    33 0000025A BB04000000              				mov rbx, 4
+    34 0000025F C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+    35 00000264 4883EC10                				sub rsp, 16
+    36 00000268 C5FA112C24              				vmovss [rsp], xmm5
+    37                                  
+    38 0000026D C5FA106D18              				vmovss xmm5, [rbp + 24]
+    39 00000272 4883EC10                				sub rsp, 16
+    40 00000276 C5FA112C24              				vmovss [rsp], xmm5
+    41                                  
+    42 0000027B C5FA100C24              				vmovss xmm1, [rsp]
+    43 00000280 4883C410                				add rsp, 16
+    44                                  
+    45 00000284 C5FA101424              				vmovss xmm2, [rsp]
+    46 00000289 4883C410                				add rsp, 16
+    47                                  
+    48 0000028D C5EA59C9                				vmulss xmm1, xmm2, xmm1
+    49                                  
+    50 00000291 4883EC10                				sub rsp, 16
+    51 00000295 C5FA110C24              				vmovss [rsp], xmm1
+    52                                  
+    53 0000029A C5FA106D38              				vmovss xmm5, [rbp + 56]
+    54 0000029F 4883EC10                				sub rsp, 16
+    55 000002A3 C5FA112C24              				vmovss [rsp], xmm5
+    56                                  
+    57 000002A8 C5FA100C24              				vmovss xmm1, [rsp]
+    58 000002AD 4883C410                				add rsp, 16
+    59                                  
+    60 000002B1 C5FA101424              				vmovss xmm2, [rsp]
+    61 000002B6 4883C410                				add rsp, 16
+    62                                  
+    63 000002BA C5EA59C9                				vmulss xmm1, xmm2, xmm1
+    64                                  
+    65 000002BE 4883EC10                				sub rsp, 16
+    66 000002C2 C5FA110C24              				vmovss [rsp], xmm1
+    67                                  
+    68 000002C7 C5FA100C24              				vmovss xmm1, [rsp]
+    69 000002CC 4883C410                				add rsp, 16
+    70                                  
+    71 000002D0 C5FA101424              				vmovss xmm2, [rsp]
+    72 000002D5 4883C410                				add rsp, 16
+    73                                  
+    74 000002D9 C5EA5CC9                				vsubss xmm1, xmm2, xmm1
+    75                                  
+    76 000002DD 4883EC10                				sub rsp, 16
+    77 000002E1 C5FA110C24              				vmovss [rsp], xmm1
+    78                                  
+    79 000002E6 C5FA106DF0              				vmovss xmm5, [rbp - 16]
+    80 000002EB 4883EC10                				sub rsp, 16
+    81 000002EF C5FA112C24              				vmovss [rsp], xmm5
+    82                                  
+    83 000002F4 BB00000000              				mov rbx, 0
+    84 000002F9 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+    85 000002FE 4883EC10                				sub rsp, 16
+    86 00000302 C5FA112C24              				vmovss [rsp], xmm5
+    87                                  
+    88 00000307 C5FA100C24              				vmovss xmm1, [rsp]
+    89 0000030C 4883C410                				add rsp, 16
+    90                                  
+    91 00000310 C5FA101424              				vmovss xmm2, [rsp]
+    92 00000315 4883C410                				add rsp, 16
+    93                                  
+    94 00000319 C5F82ECA                				vucomiss xmm1, xmm2
+    95                                  
+    96 0000031D 0F87(1C000000)          				ja 28
+    97                                  
+    98 00000323 BB00000000              				mov rbx, 0
+    99 00000328 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   100 0000032D 4883EC10                				sub rsp, 16
+   101 00000331 C5FA112C24              				vmovss [rsp], xmm5
+   102                                  
+   103 00000336 E9(17000000)            				jmp 23
+   104                                  
+   105 0000033B BB01000000              				mov rbx, 1
+   106 00000340 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   107 00000345 4883EC10                				sub rsp, 16
+   108 00000349 C5FA112C24              				vmovss [rsp], xmm5
+   109                                  
+   110 0000034E C5FA100C24              				vmovss xmm1, [rsp]
+   111 00000353 4883C410                				add rsp, 16
+   112                                  
+   113 00000357 BB00000000              				mov rbx, 0
+   114 0000035C C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   115 00000361 C5F82ECD                				vucomiss xmm1, xmm5
+   116                                  
+   117 00000365 0F84(46000000)          				je 70
+   118                                  
+   119 0000036B BB00000000              				mov rbx, 0
+   120 00000370 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   121 00000375 4883EC10                				sub rsp, 16
+   122 00000379 C5FA112C24              				vmovss [rsp], xmm5
+   123                                  
+   124 0000037E C5FA100424              				vmovss xmm0, [rsp]
+   125 00000383 4883C410                				add rsp, 16
+   126                                  
+   127 00000387 E8(85FCFFFF)            				call -891 ; call _out
+   128                                  
+   129 0000038C BB00000000              				mov rbx, 0
+   130 00000391 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   131 00000396 4883EC10                				sub rsp, 16
+   132 0000039A C5FA112C24              				vmovss [rsp], xmm5
+   133                                  
+   134 0000039F C5FA100424              				vmovss xmm0, [rsp]
+   135 000003A4 4883C410                				add rsp, 16
+   136                                  
+   137 000003A8 4889EC                  				mov rsp, rbp
+   138                                  
+   139 000003AB 5D                      				pop rbp
+   140                                  
+   141 000003AC C3                      				ret
+   142                                  
+   143 000003AD C5FA106DF0              				vmovss xmm5, [rbp - 16]
+   144 000003B2 4883EC10                				sub rsp, 16
+   145 000003B6 C5FA112C24              				vmovss [rsp], xmm5
+   146                                  
+   147 000003BB BB00000000              				mov rbx, 0
+   148 000003C0 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   149 000003C5 4883EC10                				sub rsp, 16
+   150 000003C9 C5FA112C24              				vmovss [rsp], xmm5
+   151                                  
+   152 000003CE C5FA100C24              				vmovss xmm1, [rsp]
+   153 000003D3 4883C410                				add rsp, 16
+   154                                  
+   155 000003D7 C5FA101424              				vmovss xmm2, [rsp]
+   156 000003DC 4883C410                				add rsp, 16
+   157                                  
+   158 000003E0 C5F82ECA                				vucomiss xmm1, xmm2
+   159                                  
+   160 000003E4 0F84(1C000000)          				je 28
+   161                                  
+   162 000003EA BB00000000              				mov rbx, 0
+   163 000003EF C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   164 000003F4 4883EC10                				sub rsp, 16
+   165 000003F8 C5FA112C24              				vmovss [rsp], xmm5
+   166                                  
+   167 000003FD E9(17000000)            				jmp 23
+   168                                  
+   169 00000402 BB01000000              				mov rbx, 1
+   170 00000407 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   171 0000040C 4883EC10                				sub rsp, 16
+   172 00000410 C5FA112C24              				vmovss [rsp], xmm5
+   173                                  
+   174 00000415 C5FA100C24              				vmovss xmm1, [rsp]
+   175 0000041A 4883C410                				add rsp, 16
+   176                                  
+   177 0000041E BB00000000              				mov rbx, 0
+   178 00000423 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   179 00000428 C5F82ECD                				vucomiss xmm1, xmm5
+   180                                  
+   181 0000042C 0F84(01010000)          				je 257
+   182                                  
+   183 00000432 BB01000000              				mov rbx, 1
+   184 00000437 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   185 0000043C 4883EC10                				sub rsp, 16
+   186 00000440 C5FA112C24              				vmovss [rsp], xmm5
+   187                                  
+   188 00000445 C5FA100424              				vmovss xmm0, [rsp]
+   189 0000044A 4883C410                				add rsp, 16
+   190                                  
+   191 0000044E E8(BEFBFFFF)            				call -1090 ; call _out
+   192                                  
+   193 00000453 BB00000000              				mov rbx, 0
+   194 00000458 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   195 0000045D 4883EC10                				sub rsp, 16
+   196 00000461 C5FA112C24              				vmovss [rsp], xmm5
+   197                                  
+   198 00000466 C5FA106D28              				vmovss xmm5, [rbp + 40]
+   199 0000046B 4883EC10                				sub rsp, 16
+   200 0000046F C5FA112C24              				vmovss [rsp], xmm5
+   201                                  
+   202 00000474 C5FA100C24              				vmovss xmm1, [rsp]
+   203 00000479 4883C410                				add rsp, 16
+   204                                  
+   205 0000047D C5FA101424              				vmovss xmm2, [rsp]
+   206 00000482 4883C410                				add rsp, 16
+   207                                  
+   208 00000486 C5EA5CC9                				vsubss xmm1, xmm2, xmm1
+   209                                  
+   210 0000048A 4883EC10                				sub rsp, 16
+   211 0000048E C5FA110C24              				vmovss [rsp], xmm1
+   212                                  
+   213 00000493 BB02000000              				mov rbx, 2
+   214 00000498 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   215 0000049D 4883EC10                				sub rsp, 16
+   216 000004A1 C5FA112C24              				vmovss [rsp], xmm5
+   217                                  
+   218 000004A6 C5FA106D18              				vmovss xmm5, [rbp + 24]
+   219 000004AB 4883EC10                				sub rsp, 16
+   220 000004AF C5FA112C24              				vmovss [rsp], xmm5
+   221                                  
+   222 000004B4 C5FA100C24              				vmovss xmm1, [rsp]
+   223 000004B9 4883C410                				add rsp, 16
+   224                                  
+   225 000004BD C5FA101424              				vmovss xmm2, [rsp]
+   226 000004C2 4883C410                				add rsp, 16
+   227                                  
+   228 000004C6 C5EA59C9                				vmulss xmm1, xmm2, xmm1
+   229                                  
+   230 000004CA 4883EC10                				sub rsp, 16
+   231 000004CE C5FA110C24              				vmovss [rsp], xmm1
+   232                                  
+   233 000004D3 C5FA100C24              				vmovss xmm1, [rsp]
+   234 000004D8 4883C410                				add rsp, 16
+   235                                  
+   236 000004DC C5FA101424              				vmovss xmm2, [rsp]
+   237 000004E1 4883C410                				add rsp, 16
+   238                                  
+   239 000004E5 C5EA5EC9                				vdivss xmm1, xmm2, xmm1
+   240                                  
+   241 000004E9 4883EC10                				sub rsp, 16
+   242 000004ED C5FA110C24              				vmovss [rsp], xmm1
+   243                                  
+   244 000004F2 C5FA106DE0              				vmovss xmm5, [rbp - 32]
+   245 000004F7 4883EC10                				sub rsp, 16
+   246 000004FB C5FA112C24              				vmovss [rsp], xmm5
+   247                                  
+   248 00000500 C5FA100424              				vmovss xmm0, [rsp]
+   249 00000505 4883C410                				add rsp, 16
+   250                                  
+   251 00000509 E8(03FBFFFF)            				call -1277 ; call _out
+   252                                  
+   253 0000050E BB01000000              				mov rbx, 1
+   254 00000513 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   255 00000518 4883EC10                				sub rsp, 16
+   256 0000051C C5FA112C24              				vmovss [rsp], xmm5
+   257                                  
+   258 00000521 C5FA100424              				vmovss xmm0, [rsp]
+   259 00000526 4883C410                				add rsp, 16
+   260                                  
+   261 0000052A 4889EC                  				mov rsp, rbp
+   262                                  
+   263 0000052D 5D                      				pop rbp
+   264                                  
+   265 0000052E C3                      				ret
+   266                                  
+   267 0000052F BB02000000              				mov rbx, 2
+   268 00000534 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   269 00000539 4883EC10                				sub rsp, 16
+   270 0000053D C5FA112C24              				vmovss [rsp], xmm5
+   271                                  
+   272 00000542 C5FA100424              				vmovss xmm0, [rsp]
+   273 00000547 4883C410                				add rsp, 16
+   274                                  
+   275 0000054B E8(C1FAFFFF)            				call -1343 ; call _out
+   276                                  
+   277 00000550 BB00000000              				mov rbx, 0
+   278 00000555 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   279 0000055A 4883EC10                				sub rsp, 16
+   280 0000055E C5FA112C24              				vmovss [rsp], xmm5
+   281                                  
+   282 00000563 C5FA106D28              				vmovss xmm5, [rbp + 40]
+   283 00000568 4883EC10                				sub rsp, 16
+   284 0000056C C5FA112C24              				vmovss [rsp], xmm5
+   285                                  
+   286 00000571 C5FA100C24              				vmovss xmm1, [rsp]
+   287 00000576 4883C410                				add rsp, 16
+   288                                  
+   289 0000057A C5FA101424              				vmovss xmm2, [rsp]
+   290 0000057F 4883C410                				add rsp, 16
+   291                                  
+   292 00000583 C5EA5CC9                				vsubss xmm1, xmm2, xmm1
+   293                                  
+   294 00000587 4883EC10                				sub rsp, 16
+   295 0000058B C5FA110C24              				vmovss [rsp], xmm1
+   296                                  
+   297 00000590 C5FA106DF0              				vmovss xmm5, [rbp - 16]
+   298 00000595 4883EC10                				sub rsp, 16
+   299 00000599 C5FA112C24              				vmovss [rsp], xmm5
+   300                                  
+   301 0000059E C5FA100424              				vmovss xmm0, [rsp]
+   302 000005A3 4883C410                				add rsp, 16
+   303                                  
+   304 000005A7 C5FA51C0                				vsqrtss xmm0, xmm0
+   305                                  
+   306 000005AB 4883EC10                				sub rsp, 16
+   307 000005AF C5FA110424              				vmovss [rsp], xmm0
+   308                                  
+   309 000005B4 C5FA100C24              				vmovss xmm1, [rsp]
+   310 000005B9 4883C410                				add rsp, 16
+   311                                  
+   312 000005BD C5FA101424              				vmovss xmm2, [rsp]
+   313 000005C2 4883C410                				add rsp, 16
+   314                                  
+   315 000005C6 C5EA58C9                				vaddss xmm1, xmm2, xmm1
+   316                                  
+   317 000005CA 4883EC10                				sub rsp, 16
+   318 000005CE C5FA110C24              				vmovss [rsp], xmm1
+   319                                  
+   320 000005D3 BB02000000              				mov rbx, 2
+   321 000005D8 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   322 000005DD 4883EC10                				sub rsp, 16
+   323 000005E1 C5FA112C24              				vmovss [rsp], xmm5
+   324                                  
+   325 000005E6 C5FA106D18              				vmovss xmm5, [rbp + 24]
+   326 000005EB 4883EC10                				sub rsp, 16
+   327 000005EF C5FA112C24              				vmovss [rsp], xmm5
+   328                                  
+   329 000005F4 C5FA100C24              				vmovss xmm1, [rsp]
+   330 000005F9 4883C410                				add rsp, 16
+   331                                  
+   332 000005FD C5FA101424              				vmovss xmm2, [rsp]
+   333 00000602 4883C410                				add rsp, 16
+   334                                  
+   335 00000606 C5EA59C9                				vmulss xmm1, xmm2, xmm1
+   336                                  
+   337 0000060A 4883EC10                				sub rsp, 16
+   338 0000060E C5FA110C24              				vmovss [rsp], xmm1
+   339                                  
+   340 00000613 C5FA100C24              				vmovss xmm1, [rsp]
+   341 00000618 4883C410                				add rsp, 16
+   342                                  
+   343 0000061C C5FA101424              				vmovss xmm2, [rsp]
+   344 00000621 4883C410                				add rsp, 16
+   345                                  
+   346 00000625 C5EA5EC9                				vdivss xmm1, xmm2, xmm1
+   347                                  
+   348 00000629 4883EC10                				sub rsp, 16
+   349 0000062D C5FA110C24              				vmovss [rsp], xmm1
+   350                                  
+   351 00000632 C5FA106DE0              				vmovss xmm5, [rbp - 32]
+   352 00000637 4883EC10                				sub rsp, 16
+   353 0000063B C5FA112C24              				vmovss [rsp], xmm5
+   354                                  
+   355 00000640 C5FA100424              				vmovss xmm0, [rsp]
+   356 00000645 4883C410                				add rsp, 16
+   357                                  
+   358 00000649 E8(C3F9FFFF)            				call -1597 ; call _out
+   359                                  
+   360 0000064E BB00000000              				mov rbx, 0
+   361 00000653 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   362 00000658 4883EC10                				sub rsp, 16
+   363 0000065C C5FA112C24              				vmovss [rsp], xmm5
+   364                                  
+   365 00000661 C5FA106D28              				vmovss xmm5, [rbp + 40]
+   366 00000666 4883EC10                				sub rsp, 16
+   367 0000066A C5FA112C24              				vmovss [rsp], xmm5
+   368                                  
+   369 0000066F C5FA100C24              				vmovss xmm1, [rsp]
+   370 00000674 4883C410                				add rsp, 16
+   371                                  
+   372 00000678 C5FA101424              				vmovss xmm2, [rsp]
+   373 0000067D 4883C410                				add rsp, 16
+   374                                  
+   375 00000681 C5EA5CC9                				vsubss xmm1, xmm2, xmm1
+   376                                  
+   377 00000685 4883EC10                				sub rsp, 16
+   378 00000689 C5FA110C24              				vmovss [rsp], xmm1
+   379                                  
+   380 0000068E C5FA106DF0              				vmovss xmm5, [rbp - 16]
+   381 00000693 4883EC10                				sub rsp, 16
+   382 00000697 C5FA112C24              				vmovss [rsp], xmm5
+   383                                  
+   384 0000069C C5FA100424              				vmovss xmm0, [rsp]
+   385 000006A1 4883C410                				add rsp, 16
+   386                                  
+   387 000006A5 C5FA51C0                				vsqrtss xmm0, xmm0
+   388                                  
+   389 000006A9 4883EC10                				sub rsp, 16
+   390 000006AD C5FA110424              				vmovss [rsp], xmm0
+   391                                  
+   392 000006B2 C5FA100C24              				vmovss xmm1, [rsp]
+   393 000006B7 4883C410                				add rsp, 16
+   394                                  
+   395 000006BB C5FA101424              				vmovss xmm2, [rsp]
+   396 000006C0 4883C410                				add rsp, 16
+   397                                  
+   398 000006C4 C5EA5CC9                				vsubss xmm1, xmm2, xmm1
+   399                                  
+   400 000006C8 4883EC10                				sub rsp, 16
+   401 000006CC C5FA110C24              				vmovss [rsp], xmm1
+   402                                  
+   403 000006D1 BB02000000              				mov rbx, 2
+   404 000006D6 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   405 000006DB 4883EC10                				sub rsp, 16
+   406 000006DF C5FA112C24              				vmovss [rsp], xmm5
+   407                                  
+   408 000006E4 C5FA106D18              				vmovss xmm5, [rbp + 24]
+   409 000006E9 4883EC10                				sub rsp, 16
+   410 000006ED C5FA112C24              				vmovss [rsp], xmm5
+   411                                  
+   412 000006F2 C5FA100C24              				vmovss xmm1, [rsp]
+   413 000006F7 4883C410                				add rsp, 16
+   414                                  
+   415 000006FB C5FA101424              				vmovss xmm2, [rsp]
+   416 00000700 4883C410                				add rsp, 16
+   417                                  
+   418 00000704 C5EA59C9                				vmulss xmm1, xmm2, xmm1
+   419                                  
+   420 00000708 4883EC10                				sub rsp, 16
+   421 0000070C C5FA110C24              				vmovss [rsp], xmm1
+   422                                  
+   423 00000711 C5FA100C24              				vmovss xmm1, [rsp]
+   424 00000716 4883C410                				add rsp, 16
+   425                                  
+   426 0000071A C5FA101424              				vmovss xmm2, [rsp]
+   427 0000071F 4883C410                				add rsp, 16
+   428                                  
+   429 00000723 C5EA5EC9                				vdivss xmm1, xmm2, xmm1
+   430                                  
+   431 00000727 4883EC10                				sub rsp, 16
+   432 0000072B C5FA110C24              				vmovss [rsp], xmm1
+   433                                  
+   434 00000730 C5FA106DD0              				vmovss xmm5, [rbp - 48]
+   435 00000735 4883EC10                				sub rsp, 16
+   436 00000739 C5FA112C24              				vmovss [rsp], xmm5
+   437                                  
+   438 0000073E C5FA100424              				vmovss xmm0, [rsp]
+   439 00000743 4883C410                				add rsp, 16
+   440                                  
+   441 00000747 E8(C5F8FFFF)            				call -1851 ; call _out
+   442                                  
+   443 0000074C BB02000000              				mov rbx, 2
+   444 00000751 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   445 00000756 4883EC10                				sub rsp, 16
+   446 0000075A C5FA112C24              				vmovss [rsp], xmm5
+   447                                  
+   448 0000075F C5FA100424              				vmovss xmm0, [rsp]
+   449 00000764 4883C410                				add rsp, 16
+   450                                  
+   451 00000768 4889EC                  				mov rsp, rbp
+   452                                  
+   453 0000076B 5D                      				pop rbp
+   454                                  
+   455 0000076C C3                      				ret
+   456                                  
+   457 0000076D 55                      				push rbp
+   458                                  
+   459 0000076E 4889E5                  				mov rbp, rsp
+   460                                  
+   461 00000771 C5FA106D18              				vmovss xmm5, [rbp + 24]
+   462 00000776 4883EC10                				sub rsp, 16
+   463 0000077A C5FA112C24              				vmovss [rsp], xmm5
+   464                                  
+   465 0000077F BB00000000              				mov rbx, 0
+   466 00000784 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   467 00000789 4883EC10                				sub rsp, 16
+   468 0000078D C5FA112C24              				vmovss [rsp], xmm5
+   469                                  
+   470 00000792 C5FA100C24              				vmovss xmm1, [rsp]
+   471 00000797 4883C410                				add rsp, 16
+   472                                  
+   473 0000079B C5FA101424              				vmovss xmm2, [rsp]
+   474 000007A0 4883C410                				add rsp, 16
+   475                                  
+   476 000007A4 C5F82ECA                				vucomiss xmm1, xmm2
+   477                                  
+   478 000007A8 0F84(1C000000)          				je 28
+   479                                  
+   480 000007AE BB00000000              				mov rbx, 0
+   481 000007B3 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   482 000007B8 4883EC10                				sub rsp, 16
+   483 000007BC C5FA112C24              				vmovss [rsp], xmm5
+   484                                  
+   485 000007C1 E9(17000000)            				jmp 23
+   486                                  
+   487 000007C6 BB01000000              				mov rbx, 1
+   488 000007CB C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   489 000007D0 4883EC10                				sub rsp, 16
+   490 000007D4 C5FA112C24              				vmovss [rsp], xmm5
+   491                                  
+   492 000007D9 C5FA100C24              				vmovss xmm1, [rsp]
+   493 000007DE 4883C410                				add rsp, 16
+   494                                  
+   495 000007E2 BB00000000              				mov rbx, 0
+   496 000007E7 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   497 000007EC C5F82ECD                				vucomiss xmm1, xmm5
+   498                                  
+   499 000007F0 0F84(71010000)          				je 369
+   500                                  
+   501 000007F6 C5FA106D28              				vmovss xmm5, [rbp + 40]
+   502 000007FB 4883EC10                				sub rsp, 16
+   503 000007FF C5FA112C24              				vmovss [rsp], xmm5
+   504                                  
+   505 00000804 BB00000000              				mov rbx, 0
+   506 00000809 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   507 0000080E 4883EC10                				sub rsp, 16
+   508 00000812 C5FA112C24              				vmovss [rsp], xmm5
+   509                                  
+   510 00000817 C5FA100C24              				vmovss xmm1, [rsp]
+   511 0000081C 4883C410                				add rsp, 16
+   512                                  
+   513 00000820 C5FA101424              				vmovss xmm2, [rsp]
+   514 00000825 4883C410                				add rsp, 16
+   515                                  
+   516 00000829 C5F82ECA                				vucomiss xmm1, xmm2
+   517                                  
+   518 0000082D 0F84(1C000000)          				je 28
+   519                                  
+   520 00000833 BB00000000              				mov rbx, 0
+   521 00000838 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   522 0000083D 4883EC10                				sub rsp, 16
+   523 00000841 C5FA112C24              				vmovss [rsp], xmm5
+   524                                  
+   525 00000846 E9(17000000)            				jmp 23
+   526                                  
+   527 0000084B BB01000000              				mov rbx, 1
+   528 00000850 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   529 00000855 4883EC10                				sub rsp, 16
+   530 00000859 C5FA112C24              				vmovss [rsp], xmm5
+   531                                  
+   532 0000085E C5FA100C24              				vmovss xmm1, [rsp]
+   533 00000863 4883C410                				add rsp, 16
+   534                                  
+   535 00000867 BB00000000              				mov rbx, 0
+   536 0000086C C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   537 00000871 C5F82ECD                				vucomiss xmm1, xmm5
+   538                                  
+   539 00000875 0F84(25000000)          				je 37
+   540                                  
+   541 0000087B BB08000000              				mov rbx, 8
+   542 00000880 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   543 00000885 4883EC10                				sub rsp, 16
+   544 00000889 C5FA112C24              				vmovss [rsp], xmm5
+   545                                  
+   546 0000088E C5FA100424              				vmovss xmm0, [rsp]
+   547 00000893 4883C410                				add rsp, 16
+   548                                  
+   549 00000897 E8(75F7FFFF)            				call -2187 ; call _out
+   550                                  
+   551 0000089C C5FA106D28              				vmovss xmm5, [rbp + 40]
+   552 000008A1 4883EC10                				sub rsp, 16
+   553 000008A5 C5FA112C24              				vmovss [rsp], xmm5
+   554                                  
+   555 000008AA BB00000000              				mov rbx, 0
+   556 000008AF C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   557 000008B4 4883EC10                				sub rsp, 16
+   558 000008B8 C5FA112C24              				vmovss [rsp], xmm5
+   559                                  
+   560 000008BD C5FA100C24              				vmovss xmm1, [rsp]
+   561 000008C2 4883C410                				add rsp, 16
+   562                                  
+   563 000008C6 C5FA101424              				vmovss xmm2, [rsp]
+   564 000008CB 4883C410                				add rsp, 16
+   565                                  
+   566 000008CF C5F82ECA                				vucomiss xmm1, xmm2
+   567                                  
+   568 000008D3 0F85(1C000000)          				jne 28
+   569                                  
+   570 000008D9 BB00000000              				mov rbx, 0
+   571 000008DE C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   572 000008E3 4883EC10                				sub rsp, 16
+   573 000008E7 C5FA112C24              				vmovss [rsp], xmm5
+   574                                  
+   575 000008EC E9(17000000)            				jmp 23
+   576                                  
+   577 000008F1 BB01000000              				mov rbx, 1
+   578 000008F6 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   579 000008FB 4883EC10                				sub rsp, 16
+   580 000008FF C5FA112C24              				vmovss [rsp], xmm5
+   581                                  
+   582 00000904 C5FA100C24              				vmovss xmm1, [rsp]
+   583 00000909 4883C410                				add rsp, 16
+   584                                  
+   585 0000090D BB00000000              				mov rbx, 0
+   586 00000912 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   587 00000917 C5F82ECD                				vucomiss xmm1, xmm5
+   588                                  
+   589 0000091B 0F84(25000000)          				je 37
+   590                                  
+   591 00000921 BB00000000              				mov rbx, 0
+   592 00000926 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   593 0000092B 4883EC10                				sub rsp, 16
+   594 0000092F C5FA112C24              				vmovss [rsp], xmm5
+   595                                  
+   596 00000934 C5FA100424              				vmovss xmm0, [rsp]
+   597 00000939 4883C410                				add rsp, 16
+   598                                  
+   599 0000093D E8(CFF6FFFF)            				call -2353 ; call _out
+   600                                  
+   601 00000942 BB00000000              				mov rbx, 0
+   602 00000947 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   603 0000094C 4883EC10                				sub rsp, 16
+   604 00000950 C5FA112C24              				vmovss [rsp], xmm5
+   605                                  
+   606 00000955 C5FA100424              				vmovss xmm0, [rsp]
+   607 0000095A 4883C410                				add rsp, 16
+   608                                  
+   609 0000095E 4889EC                  				mov rsp, rbp
+   610                                  
+   611 00000961 5D                      				pop rbp
+   612                                  
+   613 00000962 C3                      				ret
+   614                                  
+   615 00000963 BB00000000              				mov rbx, 0
+   616 00000968 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   617 0000096D 4883EC10                				sub rsp, 16
+   618 00000971 C5FA112C24              				vmovss [rsp], xmm5
+   619                                  
+   620 00000976 C5FA106D28              				vmovss xmm5, [rbp + 40]
+   621 0000097B 4883EC10                				sub rsp, 16
+   622 0000097F C5FA112C24              				vmovss [rsp], xmm5
+   623                                  
+   624 00000984 C5FA100C24              				vmovss xmm1, [rsp]
+   625 00000989 4883C410                				add rsp, 16
+   626                                  
+   627 0000098D C5FA101424              				vmovss xmm2, [rsp]
+   628 00000992 4883C410                				add rsp, 16
+   629                                  
+   630 00000996 C5EA5CC9                				vsubss xmm1, xmm2, xmm1
+   631                                  
+   632 0000099A 4883EC10                				sub rsp, 16
+   633 0000099E C5FA110C24              				vmovss [rsp], xmm1
+   634                                  
+   635 000009A3 C5FA106D18              				vmovss xmm5, [rbp + 24]
+   636 000009A8 4883EC10                				sub rsp, 16
+   637 000009AC C5FA112C24              				vmovss [rsp], xmm5
+   638                                  
+   639 000009B1 C5FA100C24              				vmovss xmm1, [rsp]
+   640 000009B6 4883C410                				add rsp, 16
+   641                                  
+   642 000009BA C5FA101424              				vmovss xmm2, [rsp]
+   643 000009BF 4883C410                				add rsp, 16
+   644                                  
+   645 000009C3 C5EA5EC9                				vdivss xmm1, xmm2, xmm1
+   646                                  
+   647 000009C7 4883EC10                				sub rsp, 16
+   648 000009CB C5FA110C24              				vmovss [rsp], xmm1
+   649                                  
+   650 000009D0 C5FA106DF0              				vmovss xmm5, [rbp - 16]
+   651 000009D5 4883EC10                				sub rsp, 16
+   652 000009D9 C5FA112C24              				vmovss [rsp], xmm5
+   653                                  
+   654 000009DE C5FA100424              				vmovss xmm0, [rsp]
+   655 000009E3 4883C410                				add rsp, 16
+   656                                  
+   657 000009E7 E8(25F6FFFF)            				call -2523 ; call _out
+   658                                  
+   659 000009EC C5FA106DF0              				vmovss xmm5, [rbp - 16]
+   660 000009F1 4883EC10                				sub rsp, 16
+   661 000009F5 C5FA112C24              				vmovss [rsp], xmm5
+   662                                  
+   663 000009FA C5FA100424              				vmovss xmm0, [rsp]
+   664 000009FF 4883C410                				add rsp, 16
+   665                                  
+   666 00000A03 4889EC                  				mov rsp, rbp
+   667                                  
+   668 00000A06 5D                      				pop rbp
+   669                                  
+   670 00000A07 C3                      				ret
+   671                                  
+   672 00000A08 55                      				push rbp
+   673                                  
+   674 00000A09 4889E5                  				mov rbp, rsp
+   675                                  
+   676 00000A0C BB00000000              				mov rbx, 0
+   677 00000A11 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   678 00000A16 4883EC10                				sub rsp, 16
+   679 00000A1A C5FA112C24              				vmovss [rsp], xmm5
+   680                                  
+   681 00000A1F BB00000000              				mov rbx, 0
+   682 00000A24 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   683 00000A29 4883EC10                				sub rsp, 16
+   684 00000A2D C5FA112C24              				vmovss [rsp], xmm5
+   685                                  
+   686 00000A32 BB00000000              				mov rbx, 0
+   687 00000A37 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   688 00000A3C 4883EC10                				sub rsp, 16
+   689 00000A40 C5FA112C24              				vmovss [rsp], xmm5
+   690                                  
+   691 00000A45 BB00000000              				mov rbx, 0
+   692 00000A4A C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   693 00000A4F 4883EC10                				sub rsp, 16
+   694 00000A53 C5FA112C24              				vmovss [rsp], xmm5
+   695                                  
+   696 00000A58 E8(86F6FFFF)            				call -2426 ; call _in
+   697                                  
+   698 00000A5D 4883EC10                				sub rsp, 16
+   699 00000A61 C5FA110424              				vmovss [rsp], xmm0
+   700                                  
+   701 00000A66 C5FA102C24              				vmovss xmm5, [rsp]
+   702 00000A6B 4883C410                				add rsp, 16
+   703 00000A6F C5FA116DF0              				vmovss [rbp - 16], xmm5
+   704                                  
+   705 00000A74 E8(6AF6FFFF)            				call -2454 ; call _in
+   706                                  
+   707 00000A79 4883EC10                				sub rsp, 16
+   708 00000A7D C5FA110424              				vmovss [rsp], xmm0
+   709                                  
+   710 00000A82 C5FA102C24              				vmovss xmm5, [rsp]
+   711 00000A87 4883C410                				add rsp, 16
+   712 00000A8B C5FA116DE0              				vmovss [rbp - 32], xmm5
+   713                                  
+   714 00000A90 E8(4EF6FFFF)            				call -2482 ; call _in
+   715                                  
+   716 00000A95 4883EC10                				sub rsp, 16
+   717 00000A99 C5FA110424              				vmovss [rsp], xmm0
+   718                                  
+   719 00000A9E C5FA102C24              				vmovss xmm5, [rsp]
+   720 00000AA3 4883C410                				add rsp, 16
+   721 00000AA7 C5FA116DD0              				vmovss [rbp - 48], xmm5
+   722                                  
+   723 00000AAC C5FA106DF0              				vmovss xmm5, [rbp - 16]
+   724 00000AB1 4883EC10                				sub rsp, 16
+   725 00000AB5 C5FA112C24              				vmovss [rsp], xmm5
+   726                                  
+   727 00000ABA BB00000000              				mov rbx, 0
+   728 00000ABF C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   729 00000AC4 4883EC10                				sub rsp, 16
+   730 00000AC8 C5FA112C24              				vmovss [rsp], xmm5
+   731                                  
+   732 00000ACD C5FA100C24              				vmovss xmm1, [rsp]
+   733 00000AD2 4883C410                				add rsp, 16
+   734                                  
+   735 00000AD6 C5FA101424              				vmovss xmm2, [rsp]
+   736 00000ADB 4883C410                				add rsp, 16
+   737                                  
+   738 00000ADF C5F82ECA                				vucomiss xmm1, xmm2
+   739                                  
+   740 00000AE3 0F84(1C000000)          				je 28
+   741                                  
+   742 00000AE9 BB00000000              				mov rbx, 0
+   743 00000AEE C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   744 00000AF3 4883EC10                				sub rsp, 16
+   745 00000AF7 C5FA112C24              				vmovss [rsp], xmm5
+   746                                  
+   747 00000AFC E9(17000000)            				jmp 23
+   748                                  
+   749 00000B01 BB01000000              				mov rbx, 1
+   750 00000B06 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   751 00000B0B 4883EC10                				sub rsp, 16
+   752 00000B0F C5FA112C24              				vmovss [rsp], xmm5
+   753                                  
+   754 00000B14 C5FA100C24              				vmovss xmm1, [rsp]
+   755 00000B19 4883C410                				add rsp, 16
+   756                                  
+   757 00000B1D BB00000000              				mov rbx, 0
+   758 00000B22 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   759 00000B27 C5F82ECD                				vucomiss xmm1, xmm5
+   760                                  
+   761 00000B2B 0F84(44000000)          				je 68
+   762                                  
+   763 00000B31 4889E7                  				mov rdi, rsp
+   764                                  
+   765 00000B34 C5FA106DD0              				vmovss xmm5, [rbp - 48]
+   766 00000B39 4883EC10                				sub rsp, 16
+   767 00000B3D C5FA112C24              				vmovss [rsp], xmm5
+   768                                  
+   769 00000B42 C5FA106DE0              				vmovss xmm5, [rbp - 32]
+   770 00000B47 4883EC10                				sub rsp, 16
+   771 00000B4B C5FA112C24              				vmovss [rsp], xmm5
+   772                                  
+   773 00000B50 57                      				push rdi
+   774                                  
+   775 00000B51 E8(1BFCFFFF)            				call -997
+   776                                  
+   777 00000B56 5F                      				pop rdi
+   778                                  
+   779 00000B57 4889FC                  				mov rsp, rdi
+   780                                  
+   781 00000B5A 4883EC10                				sub rsp, 16
+   782 00000B5E C5FA110424              				vmovss [rsp], xmm0
+   783                                  
+   784 00000B63 C5FA102C24              				vmovss xmm5, [rsp]
+   785 00000B68 4883C410                				add rsp, 16
+   786 00000B6C C5FA116DC0              				vmovss [rbp - 64], xmm5
+   787                                  
+   788 00000B71 C5FA106DF0              				vmovss xmm5, [rbp - 16]
+   789 00000B76 4883EC10                				sub rsp, 16
+   790 00000B7A C5FA112C24              				vmovss [rsp], xmm5
+   791                                  
+   792 00000B7F BB00000000              				mov rbx, 0
+   793 00000B84 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   794 00000B89 4883EC10                				sub rsp, 16
+   795 00000B8D C5FA112C24              				vmovss [rsp], xmm5
+   796                                  
+   797 00000B92 C5FA100C24              				vmovss xmm1, [rsp]
+   798 00000B97 4883C410                				add rsp, 16
+   799                                  
+   800 00000B9B C5FA101424              				vmovss xmm2, [rsp]
+   801 00000BA0 4883C410                				add rsp, 16
+   802                                  
+   803 00000BA4 C5F82ECA                				vucomiss xmm1, xmm2
+   804                                  
+   805 00000BA8 0F85(1C000000)          				jne 28
+   806                                  
+   807 00000BAE BB00000000              				mov rbx, 0
+   808 00000BB3 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   809 00000BB8 4883EC10                				sub rsp, 16
+   810 00000BBC C5FA112C24              				vmovss [rsp], xmm5
+   811                                  
+   812 00000BC1 E9(17000000)            				jmp 23
+   813                                  
+   814 00000BC6 BB01000000              				mov rbx, 1
+   815 00000BCB C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   816 00000BD0 4883EC10                				sub rsp, 16
+   817 00000BD4 C5FA112C24              				vmovss [rsp], xmm5
+   818                                  
+   819 00000BD9 C5FA100C24              				vmovss xmm1, [rsp]
+   820 00000BDE 4883C410                				add rsp, 16
+   821                                  
+   822 00000BE2 BB00000000              				mov rbx, 0
+   823 00000BE7 C4E1D22AEB              				vcvtsi2ss xmm5, rbx
+   824 00000BEC C5F82ECD                				vucomiss xmm1, xmm5
+   825                                  
+   826 00000BF0 0F84(52000000)          				je 82
+   827                                  
+   828 00000BF6 4889E7                  				mov rdi, rsp
+   829                                  
+   830 00000BF9 C5FA106DD0              				vmovss xmm5, [rbp - 48]
+   831 00000BFE 4883EC10                				sub rsp, 16
+   832 00000C02 C5FA112C24              				vmovss [rsp], xmm5
+   833                                  
+   834 00000C07 C5FA106DE0              				vmovss xmm5, [rbp - 32]
+   835 00000C0C 4883EC10                				sub rsp, 16
+   836 00000C10 C5FA112C24              				vmovss [rsp], xmm5
+   837                                  
+   838 00000C15 C5FA106DF0              				vmovss xmm5, [rbp - 16]
+   839 00000C1A 4883EC10                				sub rsp, 16
+   840 00000C1E C5FA112C24              				vmovss [rsp], xmm5
+   841                                  
+   842 00000C23 57                      				push rdi
+   843                                  
+   844 00000C24 E8(F6F5FFFF)            				call -2570
+   845                                  
+   846 00000C29 5F                      				pop rdi
+   847                                  
+   848 00000C2A 4889FC                  				mov rsp, rdi
+   849                                  
+   850 00000C2D 4883EC10                				sub rsp, 16
+   851 00000C31 C5FA110424              				vmovss [rsp], xmm0
+   852                                  
+   853 00000C36 C5FA102C24              				vmovss xmm5, [rsp]
+   854 00000C3B 4883C410                				add rsp, 16
+   855 00000C3F C5FA116DC0              				vmovss [rbp - 64], xmm5
+   856                                  
+   857 00000C44 C5FA106DC0              				vmovss xmm5, [rbp - 64]
+   858 00000C49 4883EC10                				sub rsp, 16
+   859 00000C4D C5FA112C24              				vmovss [rsp], xmm5
+   860                                  
+   861 00000C52 C5FA100424              				vmovss xmm0, [rsp]
+   862 00000C57 4883C410                				add rsp, 16
+   863                                  
+   864 00000C5B 4889EC                  				mov rsp, rbp
+   865                                  
+   866 00000C5E 5D                      				pop rbp
+   867                                  
+   868 00000C5F C3                      				ret
+   869                                  

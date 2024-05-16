@@ -122,7 +122,6 @@ static void TryInsertNameInStack(const Stack_t* stk, const char* str,
 // Print            ::= PRINT Name
 // Read             ::= READ Name
 
-
 // Program          ::= DefFunc Break {DefFunc Break}* END
 // DefFunc          ::= Type NewFuncName L_BRACKET FuncVars R_BRACKET {LINE_END}* FUNC_WALL SubProgram FUNC_WALL
 // CallVars         ::= L_BRACKET Expr { [,] Expr }* R_BRACKET

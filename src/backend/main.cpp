@@ -9,6 +9,7 @@
 #include "backend.h"
 #include "compiler/ir.h"
 #include "compiler/x86_asm.h"
+#include "compiler/x86_elf.h"
 
 static const size_t IR_SIZE = 1012;
 
@@ -50,9 +51,8 @@ int main(const int argc, const char* argv[])
     TranslateIrToX86(asm_file, intermediate_rep, &error);
     EXIT_IF_ERROR(&error);
 
-    IRDump(stdout, intermediate_rep);
-
-    //printf("ABOBA\n");
+    TranslateIrToElf(signature, intermediate_rep, &error);
+    EXIT_IF_ERROR(&error);
 
     TreeDtor(&tree);
     IRDtor(intermediate_rep);

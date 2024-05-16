@@ -8,6 +8,6 @@
 #include "ir.h"
 #include "byte_code.h"
 
-void PrintElfHeader(FILE* fp, byte_code_t ProgramCode, error_t* error);
+void TranslateIrToElf(const char* file_name, ir_t* ir, error_t* error);
 
 #endif

@@ -12,7 +12,7 @@ char* GenImgName();
 //  GRAPHS
 // ======================================================================
 
-static const char*  TMP_DOT_FILE = "tmp.dot";
+static const char*  TMP_DOT_FILE = "src/assets/tmp.dot";
 
 void StartGraph(FILE* dotf);
 void EndGraph(FILE* dotf);
@@ -23,7 +23,7 @@ void MakeImgFromDot(const char* dot_file);
 //  GRAPHICS (GNUPLOT)
 // ======================================================================
 
-static const char*  TMP_GNU_FILE = "tmp.gpl";
+static const char*  TMP_GNU_FILE = "src/assets/tmp.gpl";
 
 void EndGraphic(FILE* gnuf);
 void StartGraphic(FILE* gnuf, const char* img_name);

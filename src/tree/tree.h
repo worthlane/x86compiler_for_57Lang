@@ -8,7 +8,7 @@
 
 #include "stack/nametable.h"
 
-static const char* TREE_FILE = "assets/tmp.txt";
+static const char* TREE_FILE = "src/assets/tmp.txt";
 
 static const char* NIL       = "nil";
 

@@ -15,30 +15,32 @@ CXXFLAGS  = -D _DEBUG -ggdb3 -std=c++17 -O0 -Wall -Wextra -Weffc++ -Waggressive-
 			-Wstack-usage=8192 -fPIE -Werror=vla
 
 HOME = $(shell pwd)
-CXXFLAGS += -I $(HOME)
 
-IMAGE = img
-BUILD_DIR = build/bin
-OBJECTS_DIR = build/$(EXECUTABLE)
+SOURCE_DIR = src
+CXXFLAGS  += -I $(HOME)/$(SOURCE_DIR)
+
+IMAGE       = $(SOURCE_DIR)/assets/img
+BUILD_DIR   = $(SOURCE_DIR)/build/bin
+OBJECTS_DIR = $(SOURCE_DIR)/build/$(EXECUTABLE)
 
 EXPRESSION_SOURCES = tree.cpp visual.cpp tree_output.cpp tree_input.cpp
-EXPRESSION_DIR     = tree
+EXPRESSION_DIR     = $(SOURCE_DIR)/tree
 EXPRESSION_OBJECTS = $(EXPRESSION_SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
 
 BACKEND_SOURCES = main.cpp backend.cpp
-BACKEND_DIR     = backend
+BACKEND_DIR     = $(SOURCE_DIR)/backend
 BACKEND_OBJECTS = $(BACKEND_SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
 
 COMPILER_SOURCES = ir.cpp x86_asm.cpp x86_elf.cpp byte_code.cpp
-COMPILER_DIR     = backend/compiler
+COMPILER_DIR     = $(SOURCE_DIR)/backend/compiler
 COMPILER_OBJECTS = $(COMPILER_SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
 
 COMMON_SOURCES = logs.cpp errors.cpp input_and_output.cpp file_read.cpp
-COMMON_DIR     = common
+COMMON_DIR     = $(SOURCE_DIR)/common
 COMMON_OBJECTS = $(COMMON_SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
 
 STACK_SOURCES = stack.cpp hash.cpp nametable.cpp
-STACK_DIR     = stack
+STACK_DIR     = $(SOURCE_DIR)/stack
 STACK_OBJECTS = $(STACK_SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
 
 DOXYFILE = Doxyfile

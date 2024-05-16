@@ -5,8 +5,6 @@
 
 #include "byte_code.h"
 
-static const size_t MIN_CAPACITY = 256;
-
 static void ByteCodeRealloc(byte_code_t* stk, size_t new_capacity, error_t* error);
 
 // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -66,8 +64,8 @@ static void ByteCodeRealloc(byte_code_t* code, size_t new_capacity, error_t* err
 {
     assert(code);
 
-    if (new_capacity <= MIN_CAPACITY)
-        new_capacity = MIN_CAPACITY;
+    if (new_capacity <= MIN_CODE_SIZE)
+        new_capacity = MIN_CODE_SIZE;
 
     uint8_t* array  = code->array;
     size_t new_size = new_capacity * sizeof(uint8_t);

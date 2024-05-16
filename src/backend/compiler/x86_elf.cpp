@@ -1,11 +1,68 @@
-#include "stdio.h"
+#include <stdio.h>
+#include <assert.h>
 
 #include "x86_elf.h"
+#include "common/errors.h"
+#include "common/input_and_output.h"
+#include "byte_code.h"
 
-void PrintElfHeader(FILE* fp, byte_code_t ProgramCode, error_t* error)
+#ifdef CHECK_FWRITE
+#undef CHECK_FWRITE
+#endif
+#define CHECK_FWRITE(fwrite_code)   do                                  \
+                                    {                                   \
+                                        size_t status = fwrite_code;    \
+                                                                        \
+                                        if (status == -1)               \
+                                        {                                   \
+                                            error->code = (int) ERRORS::PRINT_DATA; \
+                                            error->data = "FWRITE ERROR";   \
+                                            return;             \
+                                        }       \
+                                    } while (0)                         \
+
+static void PrintProgInElf(FILE* fp, byte_code_t* ProgramCode, error_t* error);
+
+// ======================================================================================
+
+void TranslateIrToElf(const char* file_name, ir_t* ir, error_t* error)
 {
-    // ELF header (information source: https://stackoverflow.com/questions/76345246/trying-to-generate-the-smallest-elf-file-possible-in-c)
-    Elf64_Ehdr ElfHeader = {
+    byte_code_t* program_code = ByteCodeCtor(MIN_CODE_SIZE, error);
+
+    FILE* out_stream = OpenFile(file_name, "w", error);
+    BREAK_IF_ERROR(error);
+
+    ByteCodePush(program_code, 0xB8, error);
+    ByteCodePush(program_code, 0x3C, error);
+    ByteCodePush(program_code, 0x00, error);
+    ByteCodePush(program_code, 0x00, error);
+    ByteCodePush(program_code, 0x00, error);
+    ByteCodePush(program_code, 0xBF, error);
+    ByteCodePush(program_code, 0x00, error);
+    ByteCodePush(program_code, 0x00, error);
+    ByteCodePush(program_code, 0x00, error);
+    ByteCodePush(program_code, 0x00, error);
+    ByteCodePush(program_code, 0x0F, error);
+    ByteCodePush(program_code, 0x05, error);
+
+    PrintProgInElf(out_stream, program_code, error);
+
+    fclose(out_stream);
+    ByteCodeDtor(program_code);
+}
+
+// --------------------------------------------------------------------------------------------
+
+static void PrintProgInElf(FILE* fp, byte_code_t* program_code, error_t* error)
+{
+    assert(fp);
+    assert(program_code);
+
+    // ======= (source: https://stackoverflow.com/questions/76345246/trying-to-generate-the-smallest-elf-file-possible-in-c) ======
+
+    // ELF header
+    Elf64_Ehdr elf_header =
+    {
         .e_ident =
             {
                 ELFMAG0, ELFMAG1, ELFMAG2,
@@ -39,7 +96,8 @@ void PrintElfHeader(FILE* fp, byte_code_t ProgramCode, error_t* error)
     };
 
     // Program header
-    Elf64_Phdr ProgramHeader = {
+    Elf64_Phdr program_header =
+    {
         .p_type = PT_LOAD,          // Type of the program header entry (loadable segment)
         .p_flags = PF_R | PF_X,     // Segment flags (readable and executable)
         .p_offset = 0,              // Offset of the segment in the file
@@ -59,7 +117,7 @@ void PrintElfHeader(FILE* fp, byte_code_t ProgramCode, error_t* error)
         // itself. The p_filesz field includes any padding or alignment bytes, as
         // well as the actual data of the segment.
 
-        .p_filesz = sizeof(Elf64_Ehdr) + sizeof(Elf64_Phdr) + ProgramCode.size * sizeof(uint8_t),
+        .p_filesz = sizeof(Elf64_Ehdr) + sizeof(Elf64_Phdr) + program_code->size * sizeof(uint8_t),
 
         // This field represents the size of the segment in memory. It indicates
         // the total memory required by the segment when loaded into memory during
@@ -71,7 +129,7 @@ void PrintElfHeader(FILE* fp, byte_code_t ProgramCode, error_t* error)
         // p_memsz represents the size needed in memory to accommodate the
         // segment's data.
 
-        .p_memsz = sizeof(Elf64_Ehdr) + sizeof(Elf64_Phdr) + ProgramCode.size * sizeof(uint8_t),
+        .p_memsz = sizeof(Elf64_Ehdr) + sizeof(Elf64_Phdr) + program_code->size * sizeof(uint8_t),
 
         //  This field represents the alignment requirements for the segment. It
         //  specifies the minimum alignment, in bytes, that the segment's data
@@ -81,5 +139,12 @@ void PrintElfHeader(FILE* fp, byte_code_t ProgramCode, error_t* error)
         // that the segment's data does not have any strict alignment requirements
         // and can be loaded at any address.
 
-        .p_align = 1};
+        .p_align = 1
+    };
+
+    // ===============================================================================================
+
+    CHECK_FWRITE(fwrite(&elf_header, sizeof(Elf64_Ehdr), 1, fp));
+    CHECK_FWRITE(fwrite(&program_header, sizeof(Elf64_Phdr), 1, fp));
+    CHECK_FWRITE(fwrite(program_code->array, sizeof(uint8_t), program_code->size, fp));
 }

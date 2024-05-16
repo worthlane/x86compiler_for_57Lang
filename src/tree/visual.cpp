@@ -5,7 +5,7 @@
 #include "common/logs.h"
 
 static size_t      IMG_CNT        = 1;
-static const char* IMG_FOLDER_DIR = "img/";
+static const char* IMG_FOLDER_DIR = "src/assets/img/";
 
 //---------------------------------------------------------------------------------------
 
