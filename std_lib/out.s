@@ -1,16 +1,3 @@
-SIGN_BIT equ 80000000h
-MULTIPLIER equ 1000
-
-DecOutput  db '0123456789-.', 0x0A
-
-SIGN_PRINT equ 10
-DOT_PRINT  equ 11
-NEW_LINE_PRINT equ 12
-
-section .text
-
-global _out                                 ; predefined entry point name for ld
-
 _out:       mov rbx, 0
             vcvtsi2ss xmm5, rbx
             vucomiss xmm0, xmm5

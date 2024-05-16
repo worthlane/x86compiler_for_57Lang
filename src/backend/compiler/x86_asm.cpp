@@ -35,10 +35,9 @@ static inline int PrintWithTabs(FILE* fp, const char *format, ...)
 
 static inline void DumpHeader(FILE* out_stream)
 {
-    fprintf(out_stream, "section .text\n"
-                        "global _start\n"
-                        "%%include \"%s\"\n"
-                        "_start:\n\n", STD_LIBRARY_PATH);
+    fprintf(out_stream,  "%%include \"%s\"\n\n"
+                                        "global _start\n"
+                                        "_start:\n\n", STD_LIBRARY_PATH);
 }
 
 // ------------------------------------------------------

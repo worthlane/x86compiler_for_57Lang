@@ -1,16 +1,3 @@
-section .data
-
-UNKNOWN_LETTER equ -1
-MINUS_TRUE equ 1
-
-neg_flag dq 0
-
-BUFFER db '0000'
-
-section .text
-
-global _in                                 ; predefined entry point name for ld
-
 _in:        mov qword [neg_flag], 0
             mov rdx, 0
             vcvtsi2ss xmm0, rdx
