@@ -49,7 +49,7 @@ MIDDLEEND_DIR     = $(SOURCE_DIR)/middleend
 BACKEND_SOURCES = main.cpp backend.cpp
 BACKEND_DIR     = $(SOURCE_DIR)/backend
 
-COMPILER_SOURCES = ir.cpp x86_asm.cpp x86_elf.cpp byte_code.cpp
+COMPILER_SOURCES = ir.cpp x86_asm.cpp x86_elf.cpp x86_encode.cpp byte_code.cpp
 COMPILER_DIR     = $(SOURCE_DIR)/backend/compiler
 
 COMMON_SOURCES = logs.cpp errors.cpp input_and_output.cpp file_read.cpp

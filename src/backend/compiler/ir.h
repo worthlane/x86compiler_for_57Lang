@@ -6,12 +6,6 @@
 
 static const size_t FAKE_IR_CAP = 0;
 
-static const int START_ADDR = 0x1204;
-static const int HLT_ADDR   = 0x11f7 - START_ADDR;
-static const int IN_ADDR    = 0x10d2 - START_ADDR;
-static const int OUT_ADDR   = 0x1000 - START_ADDR;
-
-
 #define DEF_CMD(name, ...) \
           ID_##name,
 
