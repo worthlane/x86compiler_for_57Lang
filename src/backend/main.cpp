@@ -19,7 +19,7 @@ static const size_t MAX_FLAG_LEN = 10;
 
 int main(const int argc, const char* argv[])
 {
-    OpenLogFile(argv[0]);
+    OpenLogFile(argc, argv);
 
     error_t error = {};
 
@@ -52,9 +52,7 @@ int main(const int argc, const char* argv[])
     char asm_file[MAX_SIGNATURE_LEN] = "";
     sprintf(asm_file, "%s.s", signature);
 
-    bool need_dump = false;
-    if (argc > 1)
-        need_dump = !strncmp(DUMP_FLAG, argv[1], MAX_FLAG_LEN);
+    bool need_dump = IsFlagOn(argc, argv, DUMP_FLAG);
 
     TranslateIrToX86(asm_file, intermediate_rep, need_dump, &error);
     EXIT_IF_ERROR(&error);

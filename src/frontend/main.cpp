@@ -13,7 +13,7 @@
 
 int main(const int argc, const char* argv[])
 {
-    OpenLogFile(argv[0]);
+    OpenLogFile(argc, argv);
 
     error_t error = {};
     tree_t tree = {};

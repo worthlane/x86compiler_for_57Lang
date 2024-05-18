@@ -6,12 +6,20 @@
 
 #include "logs.h"
 
-static FILE* __LOG_STREAM__ = stderr;
+static FILE* __LOG_STREAM__ = nullptr;
 
 static const char* EXTENSION = ".log.html";
 
-void OpenLogFile(const char* FILE_NAME)
+// ------------------------------------------------------------
+
+void OpenLogFile(const int argc, const char* argv[])
 {
+    bool is_flag = IsFlagOn(argc, argv, LOG_FLAG);
+    if (!is_flag)
+        return;
+
+    const char* FILE_NAME = argv[0];
+
     char* file_name = strndup(FILE_NAME, MAX_FILE_NAME_LEN);
 
     __LOG_STREAM__ = fopen(strncat(file_name, EXTENSION, MAX_FILE_NAME_LEN + sizeof(EXTENSION)), "a");
@@ -45,6 +53,22 @@ void OpenLogFile(const char* FILE_NAME)
     free(file_name);
 }
 
+// ------------------------------------------------------------
+
+bool IsFlagOn(const int argc, const char* argv[], const char* flag)
+{
+    if (argc > 1)
+    {
+        for (size_t i = 1; i < argc; i++)
+        {
+            if (!strncmp(flag, argv[i], MAX_FILE_NAME_LEN))
+                return true;
+        }
+    }
+
+    return false;
+}
+
 //-----------------------------------------------------------------------------------------------------
 
 void CloseLogFile()
@@ -59,6 +83,9 @@ void CloseLogFile()
 
 int LogDump(dump_f dump_func, const void* stk, const char* func, const char* file, const int line)
 {
+    if (__LOG_STREAM__ == nullptr)
+        return 0;
+
     assert(dump_func);
     assert(stk);
 
@@ -69,6 +96,9 @@ int LogDump(dump_f dump_func, const void* stk, const char* func, const char* fil
 
 int PrintLog (const char *format, ...)
 {
+    if (__LOG_STREAM__ == nullptr)
+        return 0;
+
     va_list arg;
     int done;
 

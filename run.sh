@@ -7,10 +7,12 @@ filename=$(basename -- "$1")
 extension="${filename##*.}"
 filename="${filename%.*}"
 
-asm_flag=$2
+flag1=$2
+flag2=$3
 
-./front $filename.$extension
-./mid
-./back $asm_flag
+
+./front $filename.$extension $flag1 $flag2
+./mid $flag1 $flag2
+./back $flag1 $flag2
 
 chmod +x $filename

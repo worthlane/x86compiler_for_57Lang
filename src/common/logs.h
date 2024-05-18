@@ -10,13 +10,14 @@
 */
 
 static const size_t MAX_FILE_NAME_LEN = 100;
+static const char*  LOG_FLAG = "-log";
 
 /************************************************************//**
  * @brief Opens log file, also close it when program shuts down
  *
  * @param[in] FILE_NAME name of log file
  ************************************************************/
-void OpenLogFile(const char* FILE_NAME);
+void OpenLogFile(const int argc, const char* argv[]);
 
 /************************************************************//**
  * @brief Closes log file
@@ -34,6 +35,8 @@ void CloseLogFile();
  * @return int 0
  ************************************************************/
 int LogDump(dump_f dump_func, const void* obj, const char* func, const char* file, const int line);
+
+bool IsFlagOn(const int argc, const char* argv[], const char* flag);
 
 /************************************************************//**
  * @brief Prints text in log (printf analogue)
