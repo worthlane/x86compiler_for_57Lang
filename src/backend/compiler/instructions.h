@@ -6,7 +6,7 @@
 
 DEF_CMD(HLT,
 {
-    PrintWithTabs(out_stream, "call %d ; call _hlt\n", instr.arg1);
+    PrintWithTabs(out_stream, "call _hlt\n", instr.arg1);
 },
 {
     ByteCodePush(program_code, Opcodes::CALL, error);
@@ -17,7 +17,7 @@ DEF_CMD(HLT,
 
 DEF_CMD(OUT,
 {
-    PrintWithTabs(out_stream, "call %d ; call _out\n", instr.arg1);
+    PrintWithTabs(out_stream, "call _out\n", instr.arg1);
 },
 {
     ByteCodePush(program_code, Opcodes::CALL, error);
@@ -28,7 +28,7 @@ DEF_CMD(OUT,
 
 DEF_CMD(IN,
 {
-    PrintWithTabs(out_stream, "call %d ; call _in\n", instr.arg1);
+    PrintWithTabs(out_stream, "call _in\n", instr.arg1);
 },
 {
     ByteCodePush(program_code, Opcodes::CALL, error);
@@ -424,7 +424,16 @@ DEF_CMD(JMP,
         return;
     }
 
-    PrintWithTabs(out_stream, "jmp %d\n", instr.arg1);
+    {
+        char* cur_label = GetNameFromNameTable(labels, instr.refer_to);
+        if (!cur_label)
+        {
+            error->code = (int) ERRORS::INVALID_IR;
+            SetErrorData(error, "INVALID INSTRUCTION IN IR (%lu) [NO LABEL] \n", i);
+            return;
+        }
+        PrintWithTabs(out_stream, "jmp %s\n", cur_label);
+    }
 },
 {
     ByteCodePush(program_code, Opcodes::JMP, error);
@@ -442,7 +451,16 @@ DEF_CMD(JA,
         return;
     }
 
-    PrintWithTabs(out_stream, "ja %d\n", instr.arg1);
+    {
+        char* cur_label = GetNameFromNameTable(labels, instr.refer_to);
+        if (!cur_label)
+        {
+            error->code = (int) ERRORS::INVALID_IR;
+            SetErrorData(error, "INVALID INSTRUCTION IN IR (%lu) [NO LABEL] \n", i);
+            return;
+        }
+        PrintWithTabs(out_stream, "ja %s\n", cur_label);
+    }
 },
 {
     PushDoubleByte(program_code, Opcodes::JA, error);
@@ -460,7 +478,16 @@ DEF_CMD(JAE,
         return;
     }
 
-    PrintWithTabs(out_stream, "jae %d\n", instr.arg1);
+    {
+        char* cur_label = GetNameFromNameTable(labels, instr.refer_to);
+        if (!cur_label)
+        {
+            error->code = (int) ERRORS::INVALID_IR;
+            SetErrorData(error, "INVALID INSTRUCTION IN IR (%lu) [NO LABEL] \n", i);
+            return;
+        }
+        PrintWithTabs(out_stream, "jae %s\n", cur_label);
+    }
 },
 {
     PushDoubleByte(program_code, Opcodes::JAE, error);
@@ -478,7 +505,16 @@ DEF_CMD(JB,
         return;
     }
 
-    PrintWithTabs(out_stream, "jb %d\n", instr.arg1);
+    {
+        char* cur_label = GetNameFromNameTable(labels, instr.refer_to);
+        if (!cur_label)
+        {
+            error->code = (int) ERRORS::INVALID_IR;
+            SetErrorData(error, "INVALID INSTRUCTION IN IR (%lu) [NO LABEL] \n", i);
+            return;
+        }
+        PrintWithTabs(out_stream, "jb %s\n", cur_label);
+    }
 },
 {
     PushDoubleByte(program_code, Opcodes::JB, error);
@@ -496,7 +532,16 @@ DEF_CMD(JBE,
         return;
     }
 
-    PrintWithTabs(out_stream, "jbe %d\n", instr.arg1);
+    {
+        char* cur_label = GetNameFromNameTable(labels, instr.refer_to);
+        if (!cur_label)
+        {
+            error->code = (int) ERRORS::INVALID_IR;
+            SetErrorData(error, "INVALID INSTRUCTION IN IR (%lu) [NO LABEL] \n", i);
+            return;
+        }
+        PrintWithTabs(out_stream, "jbe %s\n", cur_label);
+    }
 },
 {
     PushDoubleByte(program_code, Opcodes::JBE, error);
@@ -514,7 +559,16 @@ DEF_CMD(JNE,
         return;
     }
 
-    PrintWithTabs(out_stream, "jne %d\n", instr.arg1);
+    {
+        char* cur_label = GetNameFromNameTable(labels, instr.refer_to);
+        if (!cur_label)
+        {
+            error->code = (int) ERRORS::INVALID_IR;
+            SetErrorData(error, "INVALID INSTRUCTION IN IR (%lu) [NO LABEL] \n", i);
+            return;
+        }
+        PrintWithTabs(out_stream, "jne %s\n", cur_label);
+    }
 },
 {
     PushDoubleByte(program_code, Opcodes::JNE, error);
@@ -532,7 +586,16 @@ DEF_CMD(JE,
         return;
     }
 
-    PrintWithTabs(out_stream, "je %d\n", instr.arg1);
+    {
+        char* cur_label = GetNameFromNameTable(labels, instr.refer_to);
+        if (!cur_label)
+        {
+            error->code = (int) ERRORS::INVALID_IR;
+            SetErrorData(error, "INVALID INSTRUCTION IN IR (%lu) [NO LABEL] \n", i);
+            return;
+        }
+        PrintWithTabs(out_stream, "je %s\n", cur_label);
+    }
 },
 {
     PushDoubleByte(program_code, Opcodes::JE, error);
@@ -550,7 +613,16 @@ DEF_CMD(CALL,
         return;
     }
 
-    PrintWithTabs(out_stream, "call %d\n", instr.arg1);
+    {
+        char* cur_label = GetNameFromNameTable(labels, instr.refer_to);
+        if (!cur_label)
+        {
+            error->code = (int) ERRORS::INVALID_IR;
+            SetErrorData(error, "INVALID INSTRUCTION IN IR (%lu) [NO LABEL] \n", i);
+            return;
+        }
+        PrintWithTabs(out_stream, "call %s\n", cur_label);
+    }
 },
 {
     ByteCodePush(program_code, Opcodes::CALL, error);

@@ -189,6 +189,22 @@ int GetValueFromNameTable(nametable_t* nametable, const char* name)
 
 //-----------------------------------------------------------------------------------------------------
 
+char* GetNameFromNameTable(nametable_t* nametable, const int index)
+{
+    assert(nametable);
+    assert(nametable->list);
+
+    for (int i = 0; i < nametable->size; i++)
+    {
+        if (index == nametable->list[i].ram_id)
+            return nametable->list[i].name;
+    }
+
+    return nullptr;
+}
+
+//-----------------------------------------------------------------------------------------------------
+
 #define DEF_OP(name, ...)        \
     case (Operators::name):        \
         fprintf(fp, #name);   \

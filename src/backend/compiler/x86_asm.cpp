@@ -7,14 +7,16 @@
 #include "x86_encode.h"
 #include "common/input_and_output.h"
 #include "byte_code.h"
+#include "stack/stack.h"
 
 static const char* STD_LIBRARY_PATH = "std_lib/stdlib.s";
+static const size_t MAX_LABEL_LEN = 20;
 
-static const size_t TABS_AMT = 4;
+static const size_t TABS_AMT = 2;
 
 static void PatchIRX86(ir_t* ir, error_t* error);
-static void FillIRAddrX86(ir_t* ir, error_t* error);
-static void DumpIRtoX86(FILE* out_stream, ir_t* ir, error_t* error);
+static void FillIRAddrX86(ir_t* ir, nametable_t* labels, error_t* error);
+static void DumpIRtoX86(FILE* out_stream, ir_t* ir, nametable_t* labels, error_t* error);
 
 static inline int PrintWithTabs(FILE* fp, const char *format, ...)
 {
@@ -53,21 +55,27 @@ static inline void DumpInclude(FILE* out_stream)
 
 void TranslateIrToX86(const char* file_name, ir_t* ir, bool need_dump, error_t* error)
 {
-    FillIRAddrX86(ir, error);
+    nametable_t* labels = MakeNametable();
+
+    FillIRAddrX86(ir, labels, error);
     BREAK_IF_ERROR(error);
 
     PatchIRX86(ir, error);
     BREAK_IF_ERROR(error);
 
     if (!need_dump)
+    {
+        NametableDtor(labels);
         return;
-    
+    }
+
     FILE* out_stream = OpenFile(file_name, "w", error);
     BREAK_IF_ERROR(error);
 
-    DumpIRtoX86(out_stream, ir, error);
+    DumpIRtoX86(out_stream, ir, labels, error);
 
     fclose(out_stream);
+    NametableDtor(labels);
 }
 
 // -----------------------------------------------------------------------------
@@ -77,9 +85,10 @@ void TranslateIrToX86(const char* file_name, ir_t* ir, bool need_dump, error_t* 
             size_upd                                                 \
             break;
 
-static void FillIRAddrX86(ir_t* ir, error_t* error)
+static void FillIRAddrX86(ir_t* ir, nametable_t* labels, error_t* error)
 {
     assert(ir);
+    assert(labels);
 
     if (FakeIR(ir))
     {
@@ -87,6 +96,8 @@ static void FillIRAddrX86(ir_t* ir, error_t* error)
         SetErrorData(error, "CAN NOT TRANSLATE FAKE IR TO X86\n");
         return;
     }
+
+    int label_cnt = 0;
 
     byte_code_t* program_code = ByteCodeCtor(FAKE_BYTECODE_CAP, error);
 
@@ -104,6 +115,18 @@ static void FillIRAddrX86(ir_t* ir, error_t* error)
                 error->code = (int) ERRORS::INVALID_IR;
                 SetErrorData(error, "UNKNOWN CODE INSTRUCTION IN (%lu) CELL\n", i);
                 return;
+        }
+
+        if (instr.refer_to)
+        {
+            char label[MAX_LABEL_LEN] = "";
+            char* table_label = GetNameFromNameTable(labels, instr.refer_to);
+
+            if (!table_label)
+            {
+                snprintf(label, MAX_LABEL_LEN, ".L%d", label_cnt++);
+                InsertPairInTable(labels, label, instr.refer_to);
+            }
         }
     }
 
@@ -156,9 +179,10 @@ static void PatchIRX86(ir_t* ir, error_t* error)
             break;
 
 
-static void DumpIRtoX86(FILE* out_stream, ir_t* ir, error_t* error)
+static void DumpIRtoX86(FILE* out_stream, ir_t* ir, nametable_t* labels, error_t* error)
 {
     assert(ir);
+    assert(labels);
 
     if (FakeIR(ir))
     {
@@ -172,6 +196,10 @@ static void DumpIRtoX86(FILE* out_stream, ir_t* ir, error_t* error)
     for (size_t i = 0; i < ir->size; i++)
     {
         instruction_t instr = ir->array[i];
+
+        char* table_label = GetNameFromNameTable(labels, i);
+        if (table_label)
+            fprintf(out_stream, "%s:\n", table_label);
 
         switch (instr.code)
         {
