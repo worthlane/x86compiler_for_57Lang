@@ -13,6 +13,8 @@ struct byte_code_t
     uint8_t* array;
 };
 
+static const size_t FAKE_BYTECODE_CAP = 0;
+
 byte_code_t*  ByteCodeCtor(size_t size, error_t* error);
 void          ByteCodePush(byte_code_t* code, uint8_t cmd, error_t* error);
 void          ByteCodeDtor(byte_code_t* code);

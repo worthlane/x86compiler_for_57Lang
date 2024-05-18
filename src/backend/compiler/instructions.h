@@ -2,10 +2,6 @@
 #define DEF_CMD(...) ;
 #endif
 
-#ifndef PUSH_BYTE
-#define PUSH_BYTE(...) ;
-#endif
-
 // DEF_CMD(NAME, x86_size)
 
 DEF_CMD(HLT,
@@ -13,8 +9,7 @@ DEF_CMD(HLT,
     PrintWithTabs(out_stream, "call %d ; call _hlt\n", instr.arg1);
 },
 {
-    address += 5;
-    PUSH_BYTE(Opcodes::CALL);
+    ByteCodePush(program_code, Opcodes::CALL, error);
     PushQuadByte(program_code, instr.arg1 - NUM_OPERAND_LEN, error);
 })
 
@@ -25,8 +20,7 @@ DEF_CMD(OUT,
     PrintWithTabs(out_stream, "call %d ; call _out\n", instr.arg1);
 },
 {
-    address += 5;
-    PUSH_BYTE(Opcodes::CALL);
+    ByteCodePush(program_code, Opcodes::CALL, error);
     PushQuadByte(program_code, instr.arg1 - NUM_OPERAND_LEN, error);
 })
 
@@ -37,8 +31,7 @@ DEF_CMD(IN,
     PrintWithTabs(out_stream, "call %d ; call _in\n", instr.arg1);
 },
 {
-    address += 5;
-    PUSH_BYTE(Opcodes::CALL);
+    ByteCodePush(program_code, Opcodes::CALL, error);
     PushQuadByte(program_code, instr.arg1 - NUM_OPERAND_LEN, error);
 })
 
@@ -56,7 +49,6 @@ DEF_CMD(POP,
     PrintWithTabs(out_stream, "pop %s\n", REGISTERS_STR[instr.arg1]);
 },
 {
-    address += 1;
     EncodePushPopREG(program_code, instr.arg1, InstructionCode::ID_POP, error);
 })
 
@@ -89,7 +81,6 @@ DEF_CMD(PUSH,
 {
     if (instr.type1 == ArgumentType::REGISTER)
     {
-        address += 1;
         EncodePushPopREG(program_code, instr.arg1, InstructionCode::ID_PUSH, error);
     }
     else
@@ -134,12 +125,10 @@ DEF_CMD(POP_XMM,
 {
     if (instr.type1 == ArgumentType::REGISTER)
     {
-        address += 9;
         EncodePushPopXMM(program_code, instr.arg1, InstructionCode::ID_POP_XMM, error);
     }
     else if (instr.type1 == ArgumentType::RAM)
     {
-        address += 14;
         EncodePushPopXMM(program_code, Registers::XMM5, InstructionCode::ID_POP_XMM, error);
         EncodeMOV_RAM(program_code, Registers::XMM5, instr.arg1, true, error);
     }
@@ -192,20 +181,17 @@ DEF_CMD(PUSH_XMM,
 {
     if (instr.type1 == ArgumentType::REGISTER)
     {
-        address += 9;
         EncodePushPopXMM(program_code, instr.arg1, InstructionCode::ID_PUSH_XMM, error);
     }
     else if (instr.type1 == ArgumentType::NUM)
     {
         // TODO mov
-        address += 19;
         EncodeMOV_REG_NUM(program_code, Registers::RBX, instr.arg1, error);
         EncodeMOV_RBX_to_XMM5(program_code, error);
         EncodePushPopXMM(program_code, Registers::XMM5, InstructionCode::ID_PUSH_XMM, error);
     }
     else if (instr.type1 == ArgumentType::RAM)
     {
-        address += 14;
         EncodeMOV_RAM(program_code, Registers::XMM5, instr.arg1, false, error);
         EncodePushPopXMM(program_code, Registers::XMM5, InstructionCode::ID_PUSH_XMM, error);
     }
@@ -250,12 +236,10 @@ DEF_CMD(CMP,
 {
     if (instr.type2 == ArgumentType::REGISTER)
     {
-        address += 4;
         EncodeCMP(program_code, instr.arg1, instr.arg2, error);
     }
     else
     {
-        address += 14;
         EncodeMOV_REG_NUM(program_code, Registers::RBX, instr.arg2, error);
         EncodeMOV_RBX_to_XMM5(program_code, error);
         EncodeCMP(program_code, instr.arg1, Registers::XMM5, error);
@@ -298,12 +282,10 @@ DEF_CMD(MOV,
 {
     if (instr.type2 == ArgumentType::REGISTER)
     {
-        address += 3;
         EncodeMOV_REG_REG(program_code, instr.arg1, instr.arg2, error);
     }
     else if (instr.type2 == ArgumentType::NUM)
     {
-        address += 5;
         EncodeMOV_REG_NUM(program_code, instr.arg1, instr.arg2, error);
     }
     else
@@ -336,7 +318,6 @@ DEF_CMD(SUB,
             REGISTERS_STR[instr.arg1], REGISTERS_STR[instr.arg2], REGISTERS_STR[instr.arg1]);
 },
 {
-    address += 4;
     EncodeXMMArithm(program_code, instr.arg1, instr.arg2, instr.arg1, InstructionCode::ID_SUB, error);
 })
 
@@ -362,7 +343,6 @@ DEF_CMD(ADD,
             REGISTERS_STR[instr.arg1], REGISTERS_STR[instr.arg2], REGISTERS_STR[instr.arg1]);
 },
 {
-    address += 4;
     EncodeXMMArithm(program_code, instr.arg1, instr.arg2, instr.arg1, InstructionCode::ID_ADD, error);
 })
 
@@ -388,7 +368,6 @@ DEF_CMD(MUL,
             REGISTERS_STR[instr.arg1], REGISTERS_STR[instr.arg2], REGISTERS_STR[instr.arg1]);
 },
 {
-    address += 4;
     EncodeXMMArithm(program_code, instr.arg1, instr.arg2, instr.arg1, InstructionCode::ID_MUL, error);
 })
 
@@ -414,7 +393,6 @@ DEF_CMD(DIV,
             REGISTERS_STR[instr.arg1], REGISTERS_STR[instr.arg2], REGISTERS_STR[instr.arg1]);
 },
 {
-    address += 4;
     EncodeXMMArithm(program_code, instr.arg1, instr.arg2, instr.arg1, InstructionCode::ID_DIV, error);
 })
 
@@ -432,7 +410,6 @@ DEF_CMD(SQRT,
     PrintWithTabs(out_stream, "vsqrtss %s, %s\n", REGISTERS_STR[instr.arg1], REGISTERS_STR[instr.arg1]);
 },
 {
-    address += 4;
     EncodeSQRT(program_code, instr.arg1, instr.arg1, error);
 })
 
@@ -450,8 +427,7 @@ DEF_CMD(JMP,
     PrintWithTabs(out_stream, "jmp %d\n", instr.arg1);
 },
 {
-    address += 5;
-    PUSH_BYTE(Opcodes::JMP);
+    ByteCodePush(program_code, Opcodes::JMP, error);
     PushQuadByte(program_code, instr.arg1 - NUM_OPERAND_LEN, error);
 })
 
@@ -469,7 +445,6 @@ DEF_CMD(JA,
     PrintWithTabs(out_stream, "ja %d\n", instr.arg1);
 },
 {
-    address += 6;
     PushDoubleByte(program_code, Opcodes::JA, error);
     PushQuadByte(program_code, instr.arg1 - NUM_OPERAND_LEN, error);
 })
@@ -488,7 +463,6 @@ DEF_CMD(JAE,
     PrintWithTabs(out_stream, "jae %d\n", instr.arg1);
 },
 {
-    address += 6;
     PushDoubleByte(program_code, Opcodes::JAE, error);
     PushQuadByte(program_code, instr.arg1 - NUM_OPERAND_LEN, error);
 })
@@ -507,7 +481,6 @@ DEF_CMD(JB,
     PrintWithTabs(out_stream, "jb %d\n", instr.arg1);
 },
 {
-    address += 6;
     PushDoubleByte(program_code, Opcodes::JB, error);
     PushQuadByte(program_code, instr.arg1 - NUM_OPERAND_LEN, error);
 })
@@ -526,7 +499,6 @@ DEF_CMD(JBE,
     PrintWithTabs(out_stream, "jbe %d\n", instr.arg1);
 },
 {
-    address += 6;
     PushDoubleByte(program_code, Opcodes::JBE, error);
     PushQuadByte(program_code, instr.arg1 - NUM_OPERAND_LEN, error);
 })
@@ -545,7 +517,6 @@ DEF_CMD(JNE,
     PrintWithTabs(out_stream, "jne %d\n", instr.arg1);
 },
 {
-    address += 6;
     PushDoubleByte(program_code, Opcodes::JNE, error);
     PushQuadByte(program_code, instr.arg1 - NUM_OPERAND_LEN, error);
 })
@@ -564,7 +535,6 @@ DEF_CMD(JE,
     PrintWithTabs(out_stream, "je %d\n", instr.arg1);
 },
 {
-    address += 6;
     PushDoubleByte(program_code, Opcodes::JE, error);
     PushQuadByte(program_code, instr.arg1 - NUM_OPERAND_LEN, error);
 })
@@ -583,8 +553,7 @@ DEF_CMD(CALL,
     PrintWithTabs(out_stream, "call %d\n", instr.arg1);
 },
 {
-    address += 5;
-    PUSH_BYTE(Opcodes::CALL);
+    ByteCodePush(program_code, Opcodes::CALL, error);
     PushQuadByte(program_code, instr.arg1 - NUM_OPERAND_LEN, error);
 })
 
@@ -595,8 +564,7 @@ DEF_CMD(RET,
     PrintWithTabs(out_stream, "ret\n");
 },
 {
-    address += 1;
-    PUSH_BYTE(Opcodes::RET);
+    ByteCodePush(program_code, Opcodes::RET, error);
 })
 
 // .............................................

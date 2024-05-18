@@ -14,6 +14,15 @@ static void ByteCodeRealloc(byte_code_t* stk, size_t new_capacity, error_t* erro
 byte_code_t* ByteCodeCtor(size_t size, error_t* error)
 {
     byte_code_t* code = (byte_code_t*) calloc(1, sizeof(byte_code_t));
+
+    if (size == FAKE_BYTECODE_CAP)
+    {
+        code->size     = 0;
+        code->capacity = size;
+        code->array    = nullptr;
+        return code;
+    }
+
     uint8_t*     array = (uint8_t*) calloc(size, sizeof(uint8_t));
 
     if (!code || !array)
@@ -38,8 +47,11 @@ byte_code_t* ByteCodeCtor(size_t size, error_t* error)
 
 void ByteCodePush(byte_code_t* code, uint8_t cmd, error_t* error)
 {
-    if (code == nullptr) // FAKE BYTE CODE
+    if (code->array == nullptr) // FAKE BYTE CODE
+    {
+        code->size++;
         return;
+    }
 
     if (code->size > code->capacity || code->size < 0)
     {
@@ -97,7 +109,9 @@ void ByteCodeDtor(byte_code_t* code)
 {
     assert(code);
 
-    free(code->array);
+    if (code->array)
+        free(code->array);
+
     free(code);
 
     return;

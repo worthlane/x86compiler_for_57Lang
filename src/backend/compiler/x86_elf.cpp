@@ -201,11 +201,6 @@ static void PrintStdlib(FILE* out_stream, const char* file_name, const size_t si
             encode                                                                 \
             break;
 
-#ifdef PUSH_BYTE
-#undef PUSH_BYTE
-#endif
-#define PUSH_BYTE(byte)    ByteCodePush(program_code, byte, error)
-
 static void DumpIRtoByteCode(byte_code_t* program_code, ir_t* ir, error_t* error)
 {
     assert(ir);
@@ -230,5 +225,4 @@ static void DumpIRtoByteCode(byte_code_t* program_code, ir_t* ir, error_t* error
 }
 
 #undef DEF_CMD
-#undef PUSH_BYTE
 

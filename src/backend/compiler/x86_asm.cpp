@@ -59,8 +59,6 @@ void TranslateIrToX86(const char* file_name, ir_t* ir, error_t* error)
     PatchIRX86(ir, error);
     BREAK_IF_ERROR(error);
 
-    // IRDump(stdout, ir);
-
     FILE* out_stream = OpenFile(file_name, "w", error);
     BREAK_IF_ERROR(error);
 
@@ -76,7 +74,6 @@ void TranslateIrToX86(const char* file_name, ir_t* ir, error_t* error)
             size_upd                                                 \
             break;
 
-
 static void FillIRAddrX86(ir_t* ir, error_t* error)
 {
     assert(ir);
@@ -88,14 +85,13 @@ static void FillIRAddrX86(ir_t* ir, error_t* error)
         return;
     }
 
-    int address = 0;
-    byte_code_t* program_code = nullptr;
+    byte_code_t* program_code = ByteCodeCtor(FAKE_BYTECODE_CAP, error);
 
     for (size_t i = 0; i < ir->size; i++)
     {
         instruction_t instr = ir->array[i];
 
-        ir->array[i].address = address;
+        ir->array[i].address = program_code->size;
 
         switch (instr.code)
         {
@@ -107,6 +103,8 @@ static void FillIRAddrX86(ir_t* ir, error_t* error)
                 return;
         }
     }
+
+    ByteCodeDtor(program_code);
 }
 
 #undef DEF_CMD
@@ -167,8 +165,6 @@ static void DumpIRtoX86(FILE* out_stream, ir_t* ir, error_t* error)
     }
 
     DumpHeader(out_stream);
-
-    int address = 0;
 
     for (size_t i = 0; i < ir->size; i++)
     {
