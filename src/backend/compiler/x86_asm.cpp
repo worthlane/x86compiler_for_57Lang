@@ -51,7 +51,7 @@ static inline void DumpInclude(FILE* out_stream)
 
 // ------------------------------------------------------
 
-void TranslateIrToX86(const char* file_name, ir_t* ir, error_t* error)
+void TranslateIrToX86(const char* file_name, ir_t* ir, bool need_dump, error_t* error)
 {
     FillIRAddrX86(ir, error);
     BREAK_IF_ERROR(error);
@@ -59,6 +59,9 @@ void TranslateIrToX86(const char* file_name, ir_t* ir, error_t* error)
     PatchIRX86(ir, error);
     BREAK_IF_ERROR(error);
 
+    if (!need_dump)
+        return;
+    
     FILE* out_stream = OpenFile(file_name, "w", error);
     BREAK_IF_ERROR(error);
 

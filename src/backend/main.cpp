@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "common/errors.h"
 #include "tree/tree.h"
@@ -12,6 +13,9 @@
 #include "compiler/x86_elf.h"
 
 static const size_t IR_SIZE = 1012;
+
+static const char*  DUMP_FLAG    = "-s";
+static const size_t MAX_FLAG_LEN = 10;
 
 int main(const int argc, const char* argv[])
 {
@@ -48,7 +52,11 @@ int main(const int argc, const char* argv[])
     char asm_file[MAX_SIGNATURE_LEN] = "";
     sprintf(asm_file, "%s.s", signature);
 
-    TranslateIrToX86(asm_file, intermediate_rep, &error);
+    bool need_dump = false;
+    if (argc > 1)
+        need_dump = !strncmp(DUMP_FLAG, argv[1], MAX_FLAG_LEN);
+
+    TranslateIrToX86(asm_file, intermediate_rep, need_dump, &error);
     EXIT_IF_ERROR(&error);
 
     TranslateIrToElf(signature, intermediate_rep, &error);

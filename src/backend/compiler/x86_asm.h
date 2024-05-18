@@ -3,6 +3,6 @@
 
 #include "ir.h"
 
-void TranslateIrToX86(const char* file_name, ir_t* ir, error_t* error);
+void TranslateIrToX86(const char* file_name, ir_t* ir, bool need_dump, error_t* error);
 
 #endif

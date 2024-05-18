@@ -1,4 +1,4 @@
-if [ "$#" -ne 1 ]; then
+if [ "$#" -lt 1 ]; then
     echo "EXPECTED: $0 <file.txt> [flags]"
     exit 1
 fi
