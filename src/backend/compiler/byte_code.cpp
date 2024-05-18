@@ -5,6 +5,8 @@
 
 #include "byte_code.h"
 
+static const int eight_bit_mask = 0b11111111;
+
 static void ByteCodeRealloc(byte_code_t* stk, size_t new_capacity, error_t* error);
 
 // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -36,7 +38,8 @@ byte_code_t* ByteCodeCtor(size_t size, error_t* error)
 
 void ByteCodePush(byte_code_t* code, uint8_t cmd, error_t* error)
 {
-    assert(code);
+    if (code == nullptr) // FAKE BYTE CODE
+        return;
 
     if (code->size > code->capacity || code->size < 0)
     {
@@ -98,6 +101,24 @@ void ByteCodeDtor(byte_code_t* code)
     free(code);
 
     return;
+}
+
+// -----------------------------------------------------------------------------------
+
+void PushQuadByte(byte_code_t* program_code, const int num, error_t* error)
+{
+    ByteCodePush(program_code, (num >> 0)  & eight_bit_mask, error);
+    ByteCodePush(program_code, (num >> 8)  & eight_bit_mask, error);
+    ByteCodePush(program_code, (num >> 16) & eight_bit_mask, error);
+    ByteCodePush(program_code, (num >> 24) & eight_bit_mask, error);
+}
+
+// -----------------------------------------------------------------------------------
+
+void PushDoubleByte(byte_code_t* program_code, const int num, error_t* error)
+{
+    ByteCodePush(program_code, (num >> 8) & eight_bit_mask, error);
+    ByteCodePush(program_code, (num >> 0) & eight_bit_mask, error);
 }
 
 // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,7 +4,9 @@
 #include <math.h>
 
 #include "x86_asm.h"
+#include "x86_encode.h"
 #include "common/input_and_output.h"
+#include "byte_code.h"
 
 static const char* STD_LIBRARY_PATH = "std_lib/stdlib.s";
 
@@ -87,6 +89,7 @@ static void FillIRAddrX86(ir_t* ir, error_t* error)
     }
 
     int address = 0;
+    byte_code_t* program_code = nullptr;
 
     for (size_t i = 0; i < ir->size; i++)
     {

@@ -2,6 +2,10 @@
 #define DEF_CMD(...) ;
 #endif
 
+#ifndef PUSH_BYTE
+#define PUSH_BYTE(...) ;
+#endif
+
 // DEF_CMD(NAME, x86_size)
 
 DEF_CMD(HLT,
@@ -10,7 +14,11 @@ DEF_CMD(HLT,
 },
 {
     address += 5;
+    PUSH_BYTE(Opcodes::CALL);
+    PushQuadByte(program_code, instr.arg1 - NUM_OPERAND_LEN, error);
 })
+
+// --------------------------------------------------------------------------
 
 DEF_CMD(OUT,
 {
@@ -18,7 +26,11 @@ DEF_CMD(OUT,
 },
 {
     address += 5;
+    PUSH_BYTE(Opcodes::CALL);
+    PushQuadByte(program_code, instr.arg1 - NUM_OPERAND_LEN, error);
 })
+
+// --------------------------------------------------------------------------
 
 DEF_CMD(IN,
 {
@@ -26,7 +38,11 @@ DEF_CMD(IN,
 },
 {
     address += 5;
+    PUSH_BYTE(Opcodes::CALL);
+    PushQuadByte(program_code, instr.arg1 - NUM_OPERAND_LEN, error);
 })
+
+// --------------------------------------------------------------------------
 
 DEF_CMD(POP,
 {
@@ -41,7 +57,10 @@ DEF_CMD(POP,
 },
 {
     address += 1;
+    EncodePushPopREG(program_code, instr.arg1, InstructionCode::ID_POP, error);
 })
+
+// --------------------------------------------------------------------------
 
 DEF_CMD(PUSH,
 {
@@ -69,7 +88,10 @@ DEF_CMD(PUSH,
 },
 {
     if (instr.type1 == ArgumentType::REGISTER)
+    {
         address += 1;
+        EncodePushPopREG(program_code, instr.arg1, InstructionCode::ID_PUSH, error);
+    }
     else
     {
         error->code = (int) ERRORS::INVALID_IR;
@@ -77,6 +99,8 @@ DEF_CMD(PUSH,
         return;
     }
 })
+
+// --------------------------------------------------------------------------
 
 DEF_CMD(POP_XMM,
 {
@@ -109,9 +133,16 @@ DEF_CMD(POP_XMM,
 },
 {
     if (instr.type1 == ArgumentType::REGISTER)
+    {
         address += 9;
+        EncodePushPopXMM(program_code, instr.arg1, InstructionCode::ID_POP_XMM, error);
+    }
     else if (instr.type1 == ArgumentType::RAM)
+    {
         address += 14;
+        EncodePushPopXMM(program_code, Registers::XMM5, InstructionCode::ID_POP_XMM, error);
+        EncodeMOV_RAM(program_code, Registers::XMM5, instr.arg1, true, error);
+    }
     else
     {
         error->code = (int) ERRORS::INVALID_IR;
@@ -119,6 +150,8 @@ DEF_CMD(POP_XMM,
         return;
     }
 })
+
+// --------------------------------------------------------------------------
 
 DEF_CMD(PUSH_XMM,
 {
@@ -158,14 +191,24 @@ DEF_CMD(PUSH_XMM,
 },
 {
     if (instr.type1 == ArgumentType::REGISTER)
+    {
         address += 9;
+        EncodePushPopXMM(program_code, instr.arg1, InstructionCode::ID_PUSH_XMM, error);
+    }
     else if (instr.type1 == ArgumentType::NUM)
     {
         // TODO mov
         address += 19;
+        EncodeMOV_REG_NUM(program_code, Registers::RBX, instr.arg1, error);
+        EncodeMOV_RBX_to_XMM5(program_code, error);
+        EncodePushPopXMM(program_code, Registers::XMM5, InstructionCode::ID_PUSH_XMM, error);
     }
     else if (instr.type1 == ArgumentType::RAM)
+    {
         address += 14;
+        EncodeMOV_RAM(program_code, Registers::XMM5, instr.arg1, false, error);
+        EncodePushPopXMM(program_code, Registers::XMM5, InstructionCode::ID_PUSH_XMM, error);
+    }
     else
     {
         error->code = (int) ERRORS::INVALID_IR;
@@ -173,6 +216,8 @@ DEF_CMD(PUSH_XMM,
         return;
     }
 })
+
+// --------------------------------------------------------------------------
 
 DEF_CMD(CMP,
 {
@@ -204,10 +249,20 @@ DEF_CMD(CMP,
 },
 {
     if (instr.type2 == ArgumentType::REGISTER)
+    {
         address += 4;
+        EncodeCMP(program_code, instr.arg1, instr.arg2, error);
+    }
     else
+    {
         address += 14;
+        EncodeMOV_REG_NUM(program_code, Registers::RBX, instr.arg2, error);
+        EncodeMOV_RBX_to_XMM5(program_code, error);
+        EncodeCMP(program_code, instr.arg1, Registers::XMM5, error);
+    }
 })
+
+// --------------------------------------------------------------------------
 
 DEF_CMD(MOV,
 {
@@ -242,9 +297,15 @@ DEF_CMD(MOV,
 },
 {
     if (instr.type2 == ArgumentType::REGISTER)
+    {
         address += 3;
+        EncodeMOV_REG_REG(program_code, instr.arg1, instr.arg2, error);
+    }
     else if (instr.type2 == ArgumentType::NUM)
+    {
         address += 5;
+        EncodeMOV_REG_NUM(program_code, instr.arg1, instr.arg2, error);
+    }
     else
     {
         error->code = (int) ERRORS::INVALID_IR;
@@ -276,7 +337,10 @@ DEF_CMD(SUB,
 },
 {
     address += 4;
+    EncodeXMMArithm(program_code, instr.arg1, instr.arg2, instr.arg1, InstructionCode::ID_SUB, error);
 })
+
+// --------------------------------------------------------------------------
 
 DEF_CMD(ADD,
 {
@@ -299,7 +363,10 @@ DEF_CMD(ADD,
 },
 {
     address += 4;
+    EncodeXMMArithm(program_code, instr.arg1, instr.arg2, instr.arg1, InstructionCode::ID_ADD, error);
 })
+
+// --------------------------------------------------------------------------
 
 DEF_CMD(MUL,
 {
@@ -322,7 +389,10 @@ DEF_CMD(MUL,
 },
 {
     address += 4;
+    EncodeXMMArithm(program_code, instr.arg1, instr.arg2, instr.arg1, InstructionCode::ID_MUL, error);
 })
+
+// --------------------------------------------------------------------------
 
 DEF_CMD(DIV,
 {
@@ -345,8 +415,10 @@ DEF_CMD(DIV,
 },
 {
     address += 4;
+    EncodeXMMArithm(program_code, instr.arg1, instr.arg2, instr.arg1, InstructionCode::ID_DIV, error);
 })
 
+// --------------------------------------------------------------------------
 
 DEF_CMD(SQRT,
 {
@@ -361,6 +433,7 @@ DEF_CMD(SQRT,
 },
 {
     address += 4;
+    EncodeSQRT(program_code, instr.arg1, instr.arg1, error);
 })
 
 // ............. JMP ..............
@@ -378,7 +451,11 @@ DEF_CMD(JMP,
 },
 {
     address += 5;
+    PUSH_BYTE(Opcodes::JMP);
+    PushQuadByte(program_code, instr.arg1 - NUM_OPERAND_LEN, error);
 })
+
+// --------------------------------------------------------------------------
 
 DEF_CMD(JA,
 {
@@ -393,7 +470,11 @@ DEF_CMD(JA,
 },
 {
     address += 6;
+    PushDoubleByte(program_code, Opcodes::JA, error);
+    PushQuadByte(program_code, instr.arg1 - NUM_OPERAND_LEN, error);
 })
+
+// --------------------------------------------------------------------------
 
 DEF_CMD(JAE,
 {
@@ -408,7 +489,11 @@ DEF_CMD(JAE,
 },
 {
     address += 6;
+    PushDoubleByte(program_code, Opcodes::JAE, error);
+    PushQuadByte(program_code, instr.arg1 - NUM_OPERAND_LEN, error);
 })
+
+// --------------------------------------------------------------------------
 
 DEF_CMD(JB,
 {
@@ -423,7 +508,11 @@ DEF_CMD(JB,
 },
 {
     address += 6;
+    PushDoubleByte(program_code, Opcodes::JB, error);
+    PushQuadByte(program_code, instr.arg1 - NUM_OPERAND_LEN, error);
 })
+
+// --------------------------------------------------------------------------
 
 DEF_CMD(JBE,
 {
@@ -438,7 +527,11 @@ DEF_CMD(JBE,
 },
 {
     address += 6;
+    PushDoubleByte(program_code, Opcodes::JBE, error);
+    PushQuadByte(program_code, instr.arg1 - NUM_OPERAND_LEN, error);
 })
+
+// --------------------------------------------------------------------------
 
 DEF_CMD(JNE,
 {
@@ -453,7 +546,11 @@ DEF_CMD(JNE,
 },
 {
     address += 6;
+    PushDoubleByte(program_code, Opcodes::JNE, error);
+    PushQuadByte(program_code, instr.arg1 - NUM_OPERAND_LEN, error);
 })
+
+// --------------------------------------------------------------------------
 
 DEF_CMD(JE,
 {
@@ -468,7 +565,11 @@ DEF_CMD(JE,
 },
 {
     address += 6;
+    PushDoubleByte(program_code, Opcodes::JE, error);
+    PushQuadByte(program_code, instr.arg1 - NUM_OPERAND_LEN, error);
 })
+
+// --------------------------------------------------------------------------
 
 DEF_CMD(CALL,
 {
@@ -483,7 +584,11 @@ DEF_CMD(CALL,
 },
 {
     address += 5;
+    PUSH_BYTE(Opcodes::CALL);
+    PushQuadByte(program_code, instr.arg1 - NUM_OPERAND_LEN, error);
 })
+
+// --------------------------------------------------------------------------
 
 DEF_CMD(RET,
 {
@@ -491,6 +596,7 @@ DEF_CMD(RET,
 },
 {
     address += 1;
+    PUSH_BYTE(Opcodes::RET);
 })
 
 // .............................................

@@ -103,6 +103,8 @@ static void PrintProgInElf(FILE* fp, byte_code_t* ProgramCode, error_t* error);
 static void FillVoidSpace(FILE* fp, const size_t zeros_amt, error_t* error);
 static void PrintStdlib(FILE* out_stream, const char* file_name, const size_t size, error_t* error);
 
+static void DumpIRtoByteCode(byte_code_t* program_code, ir_t* ir, error_t* error);
+
 // ======================================================================================
 
 void TranslateIrToElf(const char* file_name, ir_t* ir, error_t* error)
@@ -112,18 +114,7 @@ void TranslateIrToElf(const char* file_name, ir_t* ir, error_t* error)
     FILE* out_stream = OpenFile(file_name, "wb", error);
     BREAK_IF_ERROR(error);
 
-    ByteCodePush(program_code, 0xB8, error);
-    ByteCodePush(program_code, 0x3C, error);
-    ByteCodePush(program_code, 0x00, error);
-    ByteCodePush(program_code, 0x00, error);
-    ByteCodePush(program_code, 0x00, error);
-    ByteCodePush(program_code, 0xBF, error);
-    ByteCodePush(program_code, 0x00, error);
-    ByteCodePush(program_code, 0x00, error);
-    ByteCodePush(program_code, 0x00, error);
-    ByteCodePush(program_code, 0x00, error);
-    ByteCodePush(program_code, 0x0F, error);
-    ByteCodePush(program_code, 0x05, error);
+    DumpIRtoByteCode(program_code, ir, error);
 
     PrintProgInElf(out_stream, program_code, error);
 
@@ -202,4 +193,42 @@ static void PrintStdlib(FILE* out_stream, const char* file_name, const size_t si
 
     free(array);
 }
+
+// -----------------------------------------------------------------------------
+
+#define DEF_CMD(name, asm, encode, ...)                                         \
+        case InstructionCode::ID_##name:                                        \
+            encode                                                                 \
+            break;
+
+#ifdef PUSH_BYTE
+#undef PUSH_BYTE
+#endif
+#define PUSH_BYTE(byte)    ByteCodePush(program_code, byte, error)
+
+static void DumpIRtoByteCode(byte_code_t* program_code, ir_t* ir, error_t* error)
+{
+    assert(ir);
+    assert(program_code);
+
+    int address = 0;
+
+    for (size_t i = 0; i < ir->size; i++)
+    {
+        instruction_t instr = ir->array[i];
+
+        switch (instr.code)
+        {
+            #include "instructions.h"
+
+            default:
+                error->code = (int) ERRORS::INVALID_IR;
+                SetErrorData(error, "UNKNOWN CODE INSTRUCTION IN (%lu) CELL\n", i);
+                return;
+        }
+    }
+}
+
+#undef DEF_CMD
+#undef PUSH_BYTE
 
