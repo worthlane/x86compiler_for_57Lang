@@ -49,8 +49,11 @@ MIDDLEEND_DIR     = $(SOURCE_DIR)/middleend
 BACKEND_SOURCES = main.cpp backend.cpp
 BACKEND_DIR     = $(SOURCE_DIR)/backend
 
-COMPILER_SOURCES = ir.cpp x86_asm.cpp x86_elf.cpp x86_encode.cpp byte_code.cpp
+COMPILER_SOURCES = ir.cpp byte_code.cpp
 COMPILER_DIR     = $(SOURCE_DIR)/backend/compiler
+
+X86_SOURCES = x86_asm.cpp x86_elf.cpp x86_encode.cpp
+X86_DIR     = $(SOURCE_DIR)/backend/compiler/x86-64
 
 COMMON_SOURCES = logs.cpp errors.cpp input_and_output.cpp file_read.cpp
 COMMON_DIR     = $(SOURCE_DIR)/common
@@ -83,6 +86,7 @@ MID_STACK_OBJECTS      = $(STACK_SOURCES:%.cpp=$(MID_OBJECTS_DIR)/%.o)
 BACK_EXPRESSION_OBJECTS = $(EXPRESSION_SOURCES:%.cpp=$(BACK_OBJECTS_DIR)/%.o)
 BACK_BACKEND_OBJECTS    = $(BACKEND_SOURCES:%.cpp=$(BACK_OBJECTS_DIR)/%.o)
 BACK_COMPILER_OBJECTS   = $(COMPILER_SOURCES:%.cpp=$(BACK_OBJECTS_DIR)/%.o)
+BACK_X86_OBJECTS        = $(X86_SOURCES:%.cpp=$(BACK_OBJECTS_DIR)/%.o)
 BACK_COMMON_OBJECTS     = $(COMMON_SOURCES:%.cpp=$(BACK_OBJECTS_DIR)/%.o)
 BACK_STACK_OBJECTS      = $(STACK_SOURCES:%.cpp=$(BACK_OBJECTS_DIR)/%.o)
 
@@ -127,7 +131,8 @@ $(MID_OBJECTS_DIR)/%.o : $(STACK_DIR)/%.cpp
 
 # ------------------------------------ BACK -------------------------------------------
 
-$(BACK): $(BACK_EXPRESSION_OBJECTS) $(BACK_COMMON_OBJECTS) $(BACK_BACKEND_OBJECTS) $(BACK_STACK_OBJECTS) $(BACK_COMPILER_OBJECTS)
+$(BACK): $(BACK_EXPRESSION_OBJECTS) $(BACK_COMMON_OBJECTS) $(BACK_BACKEND_OBJECTS)	\
+									$(BACK_STACK_OBJECTS) $(BACK_COMPILER_OBJECTS) $(BACK_X86_OBJECTS)
 	$(CXX) $^ -o $@ $(CXXFLAGS)
 
 $(BACK_OBJECTS_DIR)/%.o : $(COMMON_DIR)/%.cpp
@@ -140,6 +145,9 @@ $(BACK_OBJECTS_DIR)/%.o : $(BACKEND_DIR)/%.cpp
 	$(CXX) -c $^ -o $@ $(CXXFLAGS)
 
 $(BACK_OBJECTS_DIR)/%.o : $(COMPILER_DIR)/%.cpp
+	$(CXX) -c $^ -o $@ $(CXXFLAGS)
+
+$(BACK_OBJECTS_DIR)/%.o : $(X86_DIR)/%.cpp
 	$(CXX) -c $^ -o $@ $(CXXFLAGS)
 
 $(BACK_OBJECTS_DIR)/%.o : $(STACK_DIR)/%.cpp
@@ -156,7 +164,7 @@ clean:
 	rm -rf 		$(FRONT) $(FRONT_OBJECTS_DIR)/*.o \
 		   		$(MID)   $(MID_OBJECTS_DIR)/*.o   \
 		   		$(BACK)  $(BACK_OBJECTS_DIR)/*.o  \
-		   		*.html *.log $(IMAGE)/*.png *.dot *.gpl *.log *.pdf *.aux
+		   		*.html *.log $(IMAGE)/*.png *.dot *.gpl *.log *.pdf *.aux *.s
 
 makedirs:
 	mkdir -p $(BUILD_DIR)

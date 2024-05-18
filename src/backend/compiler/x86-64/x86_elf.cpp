@@ -6,7 +6,7 @@
 #include "x86_encode.h"
 #include "common/errors.h"
 #include "common/input_and_output.h"
-#include "byte_code.h"
+#include "../byte_code.h"
 
 #ifdef CHECK_FWRITE
 #undef CHECK_FWRITE
@@ -214,7 +214,7 @@ static void DumpIRtoByteCode(byte_code_t* program_code, ir_t* ir, error_t* error
 
         switch (instr.code)
         {
-            #include "instructions.h"
+            #include "../instructions.h"
 
             default:
                 error->code = (int) ERRORS::INVALID_IR;

@@ -5,8 +5,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "ir.h"
-#include "byte_code.h"
+#include "../ir.h"
+#include "../byte_code.h"
 #include "x86_encode.h"
 
 static const int PROGRAM_HDRS_AMT = 3;

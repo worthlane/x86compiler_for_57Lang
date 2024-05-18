@@ -2,8 +2,8 @@
 #define _X86_ENCODE_H_
 
 #include <stdio.h>
-#include "byte_code.h"
-#include "ir.h"
+#include "../byte_code.h"
+#include "../ir.h"
 
 static const int START_ADDR = 0x401204;
 static const int HLT_ADDR   = 0x4011f7 - START_ADDR;

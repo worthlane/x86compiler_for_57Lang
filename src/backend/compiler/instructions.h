@@ -2,7 +2,7 @@
 #define DEF_CMD(...) ;
 #endif
 
-// DEF_CMD(NAME, x86_size)
+// DEF_CMD(NAME, x86_asm, x86_elf)
 
 DEF_CMD(HLT,
 {

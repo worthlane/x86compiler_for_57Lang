@@ -6,7 +6,7 @@
 #include "x86_asm.h"
 #include "x86_encode.h"
 #include "common/input_and_output.h"
-#include "byte_code.h"
+#include "../byte_code.h"
 #include "stack/stack.h"
 
 static const char* STD_LIBRARY_PATH = "std_lib/stdlib.s";
@@ -109,7 +109,7 @@ static void FillIRAddrX86(ir_t* ir, nametable_t* labels, error_t* error)
 
         switch (instr.code)
         {
-            #include "instructions.h"
+            #include "../instructions.h"
 
             default:
                 error->code = (int) ERRORS::INVALID_IR;
@@ -203,7 +203,7 @@ static void DumpIRtoX86(FILE* out_stream, ir_t* ir, nametable_t* labels, error_t
 
         switch (instr.code)
         {
-            #include "instructions.h"
+            #include "../instructions.h"
 
             default:
                 error->code = (int) ERRORS::INVALID_IR;
@@ -213,8 +213,6 @@ static void DumpIRtoX86(FILE* out_stream, ir_t* ir, nametable_t* labels, error_t
 
         fprintf(out_stream, "\n");
     }
-
-    //DumpInclude(out_stream);
 }
 
 #undef DEF_CMD

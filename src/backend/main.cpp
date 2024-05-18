@@ -9,8 +9,8 @@
 #include "common/input_and_output.h"
 #include "backend.h"
 #include "compiler/ir.h"
-#include "compiler/x86_asm.h"
-#include "compiler/x86_elf.h"
+#include "compiler/x86-64/x86_asm.h"
+#include "compiler/x86-64/x86_elf.h"
 
 static const size_t IR_SIZE = 1012;
 
