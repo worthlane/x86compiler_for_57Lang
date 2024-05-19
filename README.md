@@ -1,10 +1,24 @@
-# Programming language "57Lang" (README AND COMPILER FOR LANGUAGE WILL BE AVAIBLE BEFORE 20th MAY 2024)
+# Язык программирования "57Lang" + компилятор для архитектуры x86-64
 
-## How to code on this language
-Someone may find my language similar with c++, but there are some big differences.
+## Описание
+57Lang - полный по Тьюрингу язык программирования.
 
-### Numbers
-One of main features is that you need to enter all numbers in letters.
+![](readme_assets/logo.jpg)
+
+Сама программа состоит из трёх частей:
+1. Frontend - обработка входного файла и построение дерева операций.
+2. Middleend - оптимизация AST-дерева.
+3. Backend - преобразование AST-дерева в бинарный исполняемый файл при помощи компилятора под архитектуру x86-64.
+
+## Синтаксис языка
+Синтаксис может чем-то напоминать язык C++, но на самом деле между ними имеется большая разница.
+1. В языке присутствует поддержка функций, рекурсии, циклов и блоков условий.
+2. Все переменные имеют один тип. В переменной может храниться не целое знаковое число, но присвоить ей можно только целое значение.
+3. Каждая функция обязана возвращать значение.
+4. В программе должна присутствовать функция с названием ```_0_``` (альтернатива ```main``` в языке Си).
+
+### Числа
+Одной из основных идей при написании языка было поменять роль цифр и букв в обычных языках между собой. Таким образом все числа в этом языке мы должны задавать словами.
 
 0 = zero
 1 = one
@@ -17,16 +31,14 @@ One of main features is that you need to enter all numbers in letters.
 8 = eight
 9 = nine
 
-Maybe it would become more clear, when you'd see examples:
+Возможно это станет понятней, если показать примеры таких чисел.
 
 1. 57   = five_seven
 2. 179  = one_seven_nine
 3. -228 = -two_two_eight
 
-At this moment my language can detect only integrer numbers, but it can contain non-integrer expression result in variable.
-
-### Keywords
-So, as you can see my language use letters to detect numbers, so, you need to use digits, to type commands.
+### Ключевые слова
+Так как вместо цифр мы используем буквы для представления чисел, мы будем представлять ключевые слова благодаря цифрам и специальным знакам.
 
 1. if         = 57?
 2. while      = 1000_7
@@ -41,40 +53,39 @@ So, as you can see my language use letters to detect numbers, so, you need to us
 11. end       = @57@
 12. block_end = .57
 
-You also need to use numbers, to name variables. You can name variables like: "3", "57_23", "57$$@__&23321"
+Название переменной также является числом со специальными символами. Примеры корректных названий: ```3```, ```57_23```, ```57$$@_&23321```.
 
-For greater clarity I can translate some C code, and show how it looks on 57Lang.
+Для большей понятности приведу пример одного и того же рабочего кода на Си и на 57Lang.
 
 C:
-```
+```C
 int x = 0;
-scanf("%d", &x);    // input
+scanf("%d", &x);        // input
 if (x == 1337)
 {
   while (x)
   {
     x = x - 1;
   }
-  printf("%d", x * 10);
+  printf("%d", x * 10); // output
 }
 ```
 
 57Lang:
-```
+```js
 57::(1337 := zero)
-57>> 1337        // input
+57>> 1337               // input
 57? (1337 == one_three_three_seven)
   1000_7 (1337)
     1337 := 1337 - one
   .57
-  57<< 1337 * one_zero
+  57<< 1337 * one_zero  //output
 .57
-@57@
 ```
 
-(You need @57@ sing in end of every program, for successful compilation)
+В конце каждой программы должен стоять знак ```@57@```. (Задел на будущее, для возможности создания нескольких программ из одного текстового файла).
 
-You can check other code examples in "examples" folder in repository. It contains working code of factorial calculating program, and program that can solve quadratic equation.
+Другие примеры кода можно найти в папке репозитория с названием ```examples```. Там содержится программа, считающая факториал числа и программа, решающая квадратное уравнение.
 
 ### Grammar
 If you understand how recursive descent algorithm
