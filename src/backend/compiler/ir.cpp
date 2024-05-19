@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include <assert.h>
 #include <math.h>
 
 #include "ir.h"
@@ -8,6 +9,8 @@
 static const size_t MIN_CAPACITY = 128;
 
 static void IRRealloc(ir_t* ir, size_t new_capacity, error_t* error);
+
+static void OptimizePushPop(ir_t* ir, const int i, error_t* error);
 
 // ---------------------------------------------------------------
 
@@ -213,4 +216,43 @@ bool IsRegister(const int reg)
 bool FakeIR(const ir_t* ir)
 {
     return (ir->cap == FAKE_IR_CAP) ? true : false;
+}
+
+// ---------------------------------------------------------------
+
+void OptimizeIR(ir_t* ir, error_t* error)
+{
+    assert(ir);
+
+    for (size_t i = 0; i < ir->size; i++)
+    {
+        OptimizePushPop(ir, i, error);
+    }
+}
+
+// ---------------------------------------------------------------
+
+static void OptimizePushPop(ir_t* ir, const int i, error_t* error)
+{
+    assert(ir);
+
+    instruction_t instr1 = ir->array[i];
+    instruction_t instr2 = ir->array[i + 1];
+
+    if ((instr1.type1 != instr2.type1) || (instr1.arg1 != instr2.arg1))
+        return;
+
+    InstructionCode code1 = instr1.code;
+    InstructionCode code2 = instr2.code;
+
+    if ((code1 == InstructionCode::ID_PUSH     && code2 == InstructionCode::ID_POP)      ||
+        (code1 == InstructionCode::ID_PUSH_XMM && code2 == InstructionCode::ID_POP_XMM)  ||
+        (code1 == InstructionCode::ID_POP      && code2 == InstructionCode::ID_PUSH)     ||
+        (code1 == InstructionCode::ID_POP_XMM  && code2 == InstructionCode::ID_PUSH_XMM))
+    {
+        instruction_t nop = {.code = InstructionCode::ID_NOP};
+
+        ir->array[i]     = nop;
+        ir->array[i + 1] = nop;
+    }
 }

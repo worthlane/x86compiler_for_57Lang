@@ -100,6 +100,6 @@ void IRDump(FILE* fp, ir_t* ir);
 
 bool FakeIR(const ir_t* ir);
 
-
+void OptimizeIR(ir_t* ir, error_t* error);
 
 #endif

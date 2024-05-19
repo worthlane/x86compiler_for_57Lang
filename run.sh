@@ -7,12 +7,12 @@ filename=$(basename -- "$1")
 extension="${filename##*.}"
 filename="${filename%.*}"
 
-flag1=$2
-flag2=$3
 
+./front "$@"
 
-./front $filename.$extension $flag1 $flag2
-./mid $flag1 $flag2
-./back $flag1 $flag2
+shift
+
+./mid "$@"
+./back "$@"
 
 chmod +x $filename

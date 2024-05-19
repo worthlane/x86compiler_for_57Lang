@@ -4,6 +4,14 @@
 
 // DEF_CMD(NAME, x86_asm, x86_elf)
 
+DEF_CMD(NOP,
+{
+    // does nothing
+},
+{
+    // does nothing
+})
+
 DEF_CMD(HLT,
 {
     PrintWithTabs(out_stream, "call _hlt\n", instr.arg1);

@@ -15,6 +15,8 @@
 static const size_t IR_SIZE = 1012;
 
 static const char*  DUMP_FLAG    = "-s";
+static const char*  OFF_OPT_FLAG = "-O0";
+
 static const size_t MAX_FLAG_LEN = 10;
 
 int main(const int argc, const char* argv[])
@@ -49,11 +51,14 @@ int main(const int argc, const char* argv[])
 
     MoveTreeToIR(&tree, intermediate_rep, labels, &error);
 
+    bool no_opt = IsFlagOn(argc, argv, OFF_OPT_FLAG);
+    if (!no_opt)
+        OptimizeIR(intermediate_rep, &error);
+
     char asm_file[MAX_SIGNATURE_LEN] = "";
     sprintf(asm_file, "%s.s", signature);
 
     bool need_dump = IsFlagOn(argc, argv, DUMP_FLAG);
-
     TranslateIrToX86(asm_file, intermediate_rep, need_dump, &error);
     EXIT_IF_ERROR(&error);
 
