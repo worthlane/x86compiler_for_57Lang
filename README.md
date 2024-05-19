@@ -233,7 +233,7 @@ x / x  -> 1
 3. Заполненный IR транслируется в команды под архитектуру x86.
 
 ### IR
-[IR](https://en.wikipedia.org/wiki/Intermediate_representation#:~:text=An%20intermediate%20representation%20(IR)%20is,such%20as%20optimization%20and%20translation.) - (Intermediate Representation) Массив структур, содержащих информацию о каждой инструкции. Этого массива в заполненном состоянии должно быть достаточно для того, чтобы проходясь по нему построить последовательность ассемблерных команд под нужную архитектуру. В моей программе IR это массив инструкций типа ```instruction_t```.
+[IR](https://en.wikipedia.org/wiki/Intermediate_representation#:~:text=An%20intermediate%20representation%20(IR)%20is,such%20as%20optimization%20and%20translation.) - (Intermediate Representation) Массив структур, содержащих информацию о каждой инструкции. Этого массива в заполненном состоянии должно быть достаточно для того, чтобы, проходясь по нему, построить последовательность ассемблерных команд под нужную архитектуру. В моей программе IR-это массив инструкций типа ```instruction_t```.
 
 ```C
 struct instruction_t
