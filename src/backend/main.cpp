@@ -14,7 +14,7 @@
 
 static const size_t IR_SIZE = 1012;
 
-static const char*  DUMP_FLAG    = "-s";
+static const char*  DUMP_FLAG    = "-S";
 static const char*  OFF_OPT_FLAG = "-O0";
 
 static const size_t MAX_FLAG_LEN = 10;

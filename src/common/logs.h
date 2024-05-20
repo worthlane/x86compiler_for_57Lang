@@ -10,7 +10,7 @@
 */
 
 static const size_t MAX_FILE_NAME_LEN = 100;
-static const char*  LOG_FLAG = "-log";
+static const char*  LOG_FLAG = "-fdump";
 
 /************************************************************//**
  * @brief Opens log file, also close it when program shuts down
