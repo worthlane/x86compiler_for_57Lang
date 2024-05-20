@@ -8,11 +8,12 @@ git clone https://github.com/worthlane/x86compiler_for_57Lang
 cd x86_compiler_for_57Lang
 make makedirs
 make
+
+chmod +x ./run.sh
 ```
 
 ### Запуск
 ```
-chmod +x ./run.sh
 ./run.sh <имя файла> <флаги> ...
 ```
 #### Доступные флаги
