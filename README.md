@@ -1,9 +1,10 @@
-# Язык программирования "57Lang" + компилятор для архитектуры x86-64
+# 57Lang Programming Language and x86-64 Compiler
 
 ![](readme_assets/pics/logo.PNG)
 
-### Скачивание (Linux)
-```
+### Installation (Linux)
+
+```bash
 git clone https://github.com/worthlane/x86compiler_for_57Lang
 cd x86_compiler_for_57Lang
 make makedirs
@@ -12,97 +13,106 @@ make
 chmod +x ./run.sh
 ```
 
-### Запуск
+### Usage
+
+```bash
+./run.sh <filename> <flags> ...
 ```
-./run.sh <имя файла> <флаги> ...
-```
-#### Доступные флаги
-```-fdump``` - создает лог-файлы при запуске программы.  
-```-S``` - создает файл с ассемблерным кодом для nasm, который исполняет заданный код.  
-```-O0``` - отключает компиляторную [оптимизацию](#Оптимизация-IR).  
 
-# Содержание
-1. [Язык](#Язык)
-    1. [Описание](#Описание)
-    2. [Синтаксис](#Синтаксис-языка)
-        1. [Числа](#Числа)
-        2. [Операции](#Операции)
-        3. [Ключевые слова](#Ключевые-слова)
-    3. [Грамматика](#Грамматика)
-    4. [Схема работы программы](#Схема-работы-программы)
-        1. [Frontend](#Frontend)
-        2. [Middle-end](#Middle-end)
-        3. [Backend](#Backend)
-2. [Компилятор](#Компилятор)
-    1. [IR](#IR)
-          1. [Зачем это нужно?](#Зачем-это-нужно)
-          2. [Трансляция из IR](#Трансляция-из-IR)
-          3. [Оптимизация IR](#Оптимизация-IR)
-    2. [Создание ELF-файла](#Создание-ELF-файла)
-         1. [Заголовки](#Заголовки)
-         2. [Стандартная библиотека](#Стандартная-библиотека)
-    3. [Сравнение скорости](#Сравнение-скорости)
+#### Available flags
 
-## Язык
+```-fdump``` — generates log files during compilation.  
+```-S``` — generates a NASM assembly file containing the compiled program.  
+```-O0``` — disables compiler [optimizations](#ir-optimization).
 
-### Описание
-57Lang - полный по Тьюрингу язык программирования.
+# Contents
 
-### Синтаксис языка
-Основные моменты:
+1. [Language](#language)
+    1. [Description](#description)
+    2. [Syntax](#language-syntax)
+        1. [Numbers](#numbers)
+        2. [Operations](#operations)
+        3. [Keywords](#keywords)
+    3. [Grammar](#grammar)
+    4. [Compiler Pipeline](#compiler-pipeline)
+        1. [Frontend](#frontend)
+        2. [Middle-end](#middle-end)
+        3. [Backend](#backend)
+2. [Compiler](#compiler)
+    1. [IR](#ir)
+        1. [Why is it needed?](#why-is-it-needed)
+        2. [Translation from IR](#translation-from-ir)
+        3. [IR Optimization](#ir-optimization)
+    2. [ELF Generation](#elf-generation)
+        1. [Headers](#headers)
+        2. [Standard Library](#standard-library)
+    3. [Performance Comparison](#performance-comparison)
 
-1. В языке присутствует поддержка функций, рекурсии, циклов и блоков условий.
-2. Все переменные имеют один тип. В переменной может храниться не целое знаковое число, но присвоить ей можно только целое значение.
-3. Каждая функция обязана возвращать значение.
-4. В программе должна присутствовать функция с названием ```_0_``` (альтернатива ```main``` в языке Си).
-5. Язык поддерживает локальные переменные внутри циклов и условных блоков, глобальные переменные на данный момент недоступны.
+## Language
 
-Синтаксис может чем-то напоминать язык Си, но на самом деле между ними имеется большая разница.
+### Description
 
-#### Числа
-Одна из основных идей при написании языка - поменять между собой роль цифр и букв в обычных языках. Таким образом все числа в этом языке должны задаваться словами.
+57Lang is a Turing-complete programming language.
 
-```
-0 = zero  
-1 = one  
-2 = two  
-3 = three  
-4 = four  
-5 = five  
-6 = six  
-7 = seven  
-8 = eight  
+### Language Syntax
+
+The main features of the language are:
+
+1. The language supports functions, recursion, loops, and conditional blocks.
+2. All variables have the same type. Variables can store non-integer signed values, but only integer values can be assigned directly.
+3. Every function must return a value.
+4. Every program must contain a function named ```_0_```, which is equivalent to ```main``` in C.
+5. The language supports local variables inside loops and conditional blocks. Global variables are currently not supported.
+
+The syntax is somewhat similar to C, although there are significant differences between the two languages.
+
+#### Numbers
+
+One of the main ideas behind the language is to swap the roles of digits and letters compared to conventional programming languages. Therefore, all numeric literals are written using words.
+
+```text
+0 = zero
+1 = one
+2 = two
+3 = three
+4 = four
+5 = five
+6 = six
+7 = seven
+8 = eight
 9 = nine
 ```
 
-Возможно, это станет понятней, если показать примеры таких чисел.
+For example:
 
-```
+```text
 57   = five_seven
 179  = one_seven_nine
 -228 = -two_two_eight
 ```
 
-#### Операции
-Операции имеют интуитивный вид, здесь у меня не было мотива максимально усложнить программисту написание кода (в отличие от других частей😈😈😈).
+#### Operations
 
-```
-... * ... - умножение
-... / ... - деление
-... + ... - сложение
-... - ... - вычитание
+Arithmetic operations use standard notation:
+
+```text
+... * ... - multiplication
+... / ... - division
+... + ... - addition
+... - ... - subtraction
 ```
 
-#### Ключевые слова
-Так как вместо цифр мы используем для представления чисел буквы, то будем представлять ключевые слова с помощью цифр и спец. знаков.
+#### Keywords
 
-```
+Since letters are used to represent numeric literals, keywords are represented using digits and special characters.
+
+```text
 57?    = if
 1000_7 = while
 :=     = assignment
-$1#    = sinus
-57#    = sqrt
-<0$    = cosinus
+$1#    = sine
+57#    = square root
+<0$    = cosine
 57>>   = input
 57<<   = output
 57::   = type
@@ -111,11 +121,12 @@ $1#    = sinus
 .57    = end of block
 ```
 
-Название переменной также является числом со специальными символами. Примеры корректных названий: ```3```, ```57_23```, ```57$$@_&23321```.
+Variable names are also represented using numbers and special characters. Examples of valid variable names are ```3```, ```57_23```, and ```57$$@_&23321```.
 
-Для большей понятности приведу пример одного и того же рабочего кода на Си и на 57Lang.
+The following example shows equivalent code in C and 57Lang.
 
 C:
+
 ```C
 int x = 0;
 scanf("%d", &x);        // input
@@ -130,6 +141,7 @@ if (x == 1337)
 ```
 
 57Lang:
+
 ```js
 57::(1337 := zero)
 57>> 1337               // input
@@ -137,31 +149,35 @@ if (x == 1337)
   1000_7 (1337)
     1337 := 1337 - one
   .57
-  57<< 1337 * one_zero  //output
+  57<< 1337 * one_zero  // output
 .57
 ```
 
-В конце каждой программы должен стоять знак ```@57@```. (Задел на будущее, для возможности создания нескольких программ из одного текстового файла).
-Стоит также обратить внимание, что условный блок или блок цикла начинается сразу после строчки его объявления, а заканчивается только при встрече оператора ```.57```.
+Every program must end with the ```@57@``` token. This also leaves room for extending the language in the future to support multiple programs in a single source file.
 
-Функция определяется следующим образом:
+Conditional and loop blocks begin immediately after their declaration and end when the ```.57``` operator is encountered.
+
+A function is defined as follows:
+
 ```js
-57::(название(57::(переменная), 57::(переменная)))
+57::(name(57::(variable), 57::(variable)))
 ##################################################
 
-// код функции
+// function body
 
-~57 значение // функция обязательно должная возвращать значение
+~57 value // every function must return a value
 ##################################################
 ```
 
-Как вы можете видеть, блок функции отделяется большим количеством решеток. Это сделано ради того, чтобы в большом коде функции можно было различать между собой. Так как [некоторые люди](https://github.com/d3clane) высмеивали то, что я в контесте разграничиваю функции в Си комментарием из большого количества тире, я решил сделать эту особенность в своем языке обязательной. Говнокодеров будет корёжить от такого базированного языка, поэтому люди будут писать только чистый код.
+Function blocks are separated using sequences of ```#``` characters.
 
-Другие примеры кода можно найти в папке репозитория с названием [examples](examples). Там содержится программа, считающая факториал числа, и программа, решающая квадратное уравнение.
+More code examples can be found in the [examples](examples) directory. It contains a factorial implementation and a program for solving quadratic equations.
 
-#### Грамматика
-Так как код распознается с помощью [рекурсивного спуска](https://ru.wikipedia.org/wiki/Метод_рекурсивного_спуска). Текст распознается с использованием нижепредставленной грамматики:
-```
+#### Grammar
+
+The parser is implemented using [recursive descent](https://en.wikipedia.org/wiki/Recursive_descent_parser). The source code is parsed according to the following grammar:
+
+```text
 Program          ::= DefFunc Break {DefFunc Break}* END
 DefFunc          ::= Type NewFuncName L_BRACKET FuncVars R_BRACKET {LINE_END}* FUNC_WALL SubProgram FUNC_WALL
 CallVars         ::= L_BRACKET Expr { [,] Expr }* R_BRACKET
@@ -191,39 +207,45 @@ Name             ::= NAME
 Num              ::= NUM
 ```
 
-#### Обозначения:
-* ```Word``` - вызов функции ```Word```;
-* ```WORD``` - прочитать токен ```WORD```;
-* ```{ A | B | C | ... }``` - возможно множество из ситуаций: ```A```, ```B``` или ```C```;
-* ```[WORD]``` - не обязательный токен;
-* ```A*``` - ситуация ```A```, повторяется 0 и более раз.
+#### Notation
 
-## Схема работы программы
+* ```Word``` — call the function ```Word```;
+* ```WORD``` — consume the ```WORD``` token;
+* ```{ A | B | C | ... }``` — one of the alternatives: ```A```, ```B```, ```C```, etc.;
+* ```[WORD]``` — optional ```WORD``` token;
+* ```A*``` — ```A``` repeated zero or more times.
 
-Сама программа состоит из трёх основных частей:
-1. [Frontend](#Frontend) - обработка входного файла и построение дерева операций.
-2. [Middle-end](#Middle-end) - оптимизация AST-дерева.
-3. [Backend](#Backend) - преобразование AST-дерева в бинарный исполняемый файл при помощи компилятора под архитектуру x86-64.
+## Compiler Pipeline
+
+The compiler consists of three main stages:
+
+1. [Frontend](#frontend) — processes the input source file and builds an abstract syntax tree.
+2. [Middle-end](#middle-end) — optimizes the AST.
+3. [Backend](#backend) — translates the AST into an executable binary for the x86-64 architecture.
 
 ### Frontend
-Первая стадия обработки кода. Но этот этап также можно разбить в несколько частей:
 
-* Сначала лексический анализатор разбивает текст программы на отдельные "смысловые блоки", соединяя набор символов в единую лексему (еще их называют токенами). Такими лексемами могут быть переменные, операторы, объявление типа и так далее.
+The frontend can be divided into several stages:
+
+* First, the lexer splits the source code into individual meaningful units, combining sequences of characters into lexemes, also called tokens. Tokens include variable names, operators, type declarations, and other language constructs.
 
 ![](readme_assets/pics/lexems.jpg)
 
-* Затем синтаксический парсер проходится по лексемам при помощи алгоритма рекурсивного спуска и на его основе строит [AST-дерево](https://ru.wikipedia.org/wiki/Абстрактное_синтаксическое_дерево) программы, характеризующее операции в ней.
+* The parser then processes the tokens using a recursive descent algorithm and builds an [AST](https://en.wikipedia.org/wiki/Abstract_syntax_tree) representing the structure and operations of the program.
 
 ![](readme_assets/pics/ast.png)
 
-* AST-дерево сохраняется в папке ```assets```. В файле, помимо дерева, также будет лежать название заданного на вход файла без учета расширения. Сделано это для того, чтобы передавать название для бинарного файла между разными стадиями обработки кода.
+* The AST is stored in the ```assets``` directory. In addition to the tree itself, the file also contains the name of the input source file without its extension. This allows the output binary name to be passed between different stages of the compiler.
 
 ### Middle-end
-На второй стадии программа проходится по AST-дереву и оптимизирует всевозможные операции, результат которых известен заранее. Тогда исполняемому коду не нужно будет тратить время на расчет итак известных параметров.
 
-Примеры таких оптимизаций:
+During the second stage, the compiler traverses the AST and simplifies expressions whose result can be determined at compile time.
 
-```
+This avoids unnecessary calculations at runtime.
+
+Examples of such optimizations:
+
+```text
 1 + 1  -> 2
 0 * x  -> 0
 1 * x  -> x
@@ -231,31 +253,40 @@ x / x  -> 1
 ```
 
 ### Backend
-Третья (финальная) часть обработки кода.
 
-Программа проходится по AST-дереву и транслирует его в ассемблерные команды. В прошлой версии языка на данном этапе дерево транслировалось в команды для написанного мной процессора. В этот раз я реализовал свою версию компилятора для x86-64, которая создает исполняемый ELF-файл. 
+The backend is the final compilation stage.
 
-# Компилятор
+It traverses the AST and translates it into machine instructions. In the previous version of the language, the AST was translated into instructions for a custom processor. In this version, the backend implements an x86-64 compiler that directly generates executable ELF files.
 
-## Принцип работы
-Как было написано ранее, бэкенд должен преобразовать AST-дерево в некую структуру данных, которую мы сможем переводить в нужные нам команды. То есть программа будет работать в три этапа:
+# Compiler
 
-1. Трансляция из AST-дерева в массив IR.
-2. IR дозаполняется нужными данными благодаря нескольким проходам.
-3. Заполненный IR транслируется в команды под архитектуру x86.
+## Architecture
+
+As described above, the backend must transform the AST into a representation that can later be translated into machine instructions.
+
+The process consists of three stages:
+
+1. Translate the AST into an array of IR instructions.
+2. Perform several passes over the IR to compute and fill in additional information.
+3. Translate the completed IR into x86-64 machine instructions.
 
 ### IR
-[IR](https://en.wikipedia.org/wiki/Intermediate_representation#:~:text=An%20intermediate%20representation%20(IR)%20is,such%20as%20optimization%20and%20translation.) (Intermediate Representation) - массив структур, содержащих информацию о каждой инструкции. Этого массива в заполненном состоянии должно быть достаточно для того, чтобы, проходясь по нему, построить последовательность ассемблерных команд под нужную архитектуру. В моей программе IR-это массив инструкций типа ```instruction_t```.
+
+[IR](https://en.wikipedia.org/wiki/Intermediate_representation) (Intermediate Representation) is an array of structures containing information about individual instructions.
+
+Once fully constructed, the IR contains enough information to generate the corresponding machine-code instruction sequence for the target architecture.
+
+In this compiler, the IR is represented as an array of ```instruction_t``` structures.
 
 ```C
 struct instruction_t
 {
-    int address;               // insruction address
+    int address;               // instruction address
 
     InstructionCode code;      // instruction code
 
     bool   need_patch;         // does instruction need patch
-    size_t refer_to;           // refer to other instruction       
+    size_t refer_to;           // refer to other instruction
 
     ArgumentType type1;        // first argument type
     int          arg1;         // first argument value
@@ -265,86 +296,131 @@ struct instruction_t
 };
 ```
 
-#### Зачем это нужно?
-Появляется закономерный вопрос: Зачем мы сначала транслируем дерево в массив IR, если в теории можно сразу в ассемблерные команды, как мы это делали в прошлой реализации. На это есть как минимум 2 важных причины.
+#### Why is it needed?
 
-* Во-первых, это потребуется для кодирования команд с использованием адресов. Таких как ```jmp```, ```call``` и т.п. Такие инструкции требуют в качестве аргумента относительное смещение по байтам, которое можно посчитать, только если иметь линейную последовательность инструкций. В IR например, встречая такую команду мы будем присваивать значению ```true``` для ```need_patch```, а в ```refer_to``` класть индекс инструкции, на которую ссылается рассматриваемая нами команда. В таком случае, заполнив полностью массив IR и предпосчитав адреса его команд, мы сможем благодаря еще одному проходу заполнить до конца команды, у которых ```need_patch == true```. Таким образом за ассимптотику $O(n)$ мы сможем получить все нужные нам данные для дальнейшего вывода в ассемблерный код.
+A natural question is why the compiler first translates the AST into IR instead of generating assembly instructions directly. There are at least two important reasons.
 
-* Во-вторых, IR может использоваться как общий этап, для трансляции не только из AST-дерева, но и из некоторого бинарного кода (например кода моего [процессора](https://github.com/worthlane/SPU_emulator)) в бинарный код под другую архитектуру. Тогда потребуется написать намного меньше программ, для того, чтобы транслировать нужный объект под нужную архитектуру.
+* First, IR is useful for encoding instructions that operate on addresses, such as ```jmp``` and ```call```. These instructions require a relative byte offset as an argument, which can only be calculated after the final linear sequence of instructions is known.
+
+  When such an instruction is generated, ```need_patch``` is set to ```true```, while ```refer_to``` stores the index of the target instruction.
+
+  After the complete IR has been generated and the addresses of all instructions have been calculated, another pass can fill in the missing offsets for every instruction where ```need_patch == true```.
+
+  This allows all required address information to be calculated in $O(n)$ time.
+
+* Second, the IR can be used as a common intermediate stage for translating not only from an AST, but also from another instruction set. For example, code for my custom [processor](https://github.com/worthlane/SPU_emulator) could be translated into this IR and then compiled for another architecture.
+
+  This reduces the amount of architecture-specific translation code that needs to be implemented.
 
 ![](readme_assets/pics/ir.PNG)
 
-### Трансляция из IR
+### Translation from IR
 
-После того, как мы получили IR из AST-дерева, нужно транслировать его в инструкции под одну из архитектур. В этом случае будем транслировать в elf-файл для x86-64. Так как наш IR фактически состоит из некоторых "абстрактных" инструкций, нам нужно каждую из инструкций, содержащихся в IR задать в качестве одной или нескольких ассемблерных команд. Я задаю перевод этим инструкциям в файле [instructions.h](src/backend/compiler/instructions.h). Здесь используется кодогенерация, благодаря которой мы можем выводить инструкции как в ```.s``` файл для nasm (такой файл создается при флаге ```-S``` во время компиляции), так и сразу в ELF-файл.
+After generating the IR from the AST, the compiler must translate it into instructions for the target architecture. In this case, the target is an x86-64 ELF executable.
 
-#### Как транслируем?
-В процессоре у нас было два стека: один для арифметических операций, а второй для адресов возврата. Переменные мы хранили в оперативной памяти (RAM). Транслируя в x86, у нас остается только один стэк. Есть вариант выделить искусственно память под второй стэк и пользоваться двумя, но я предпочел сохранять все данные в одном стэке, а адресоваться к ним с помощью смещения относительно ```rbp```. Для этого нам понадобится [стэковый фрейм](https://ru.wikipedia.org/wiki/Стековый_кадр).
+Since the IR consists of abstract instructions, each IR instruction must be mapped to one or more x86-64 instructions.
+
+These translations are defined in [instructions.h](src/backend/compiler/instructions.h).
+
+Code generation is used so that the same instruction definitions can produce either a ```.s``` file for NASM, generated when the ```-S``` flag is used, or machine code written directly into an ELF executable.
+
+#### Translation Details
+
+The custom processor used two stacks: one for arithmetic operations and another for return addresses. Variables were stored in RAM.
+
+When translating to x86-64, only one stack is used. It would be possible to allocate a separate memory region and emulate a second stack, but instead all data is stored on the regular stack and accessed using offsets relative to ```rbp```.
+
+This requires using a [stack frame](https://en.wikipedia.org/wiki/Call_stack#Structure).
 
 ![](readme_assets/pics/stackdiff.PNG)
 
-Операции с переменными будем проводить через ```XMM``` регистры, для того, чтобы сохранять вещественные значения в переменных.
+Operations involving variables use ```XMM``` registers so that floating-point values can be stored and processed.
 
-#### Создание стандартной библиотеки
+#### Standard Library
 
-Так как не все команды в IR могут иметь свои аналоги, я написал стандартную библиотеку, содержащую функции, которые заменяют отсутствующие команды.
-В [stdlib.s](std_lib/stdlib.s) содержатся реализация таких инструкций как ```in```, ```out```, ```hlt```.
+Some IR instructions do not have direct equivalents in the target instruction set. For these operations, the compiler uses a small standard library.
 
-#### Оптимизация IR
-Получив наполненный IR можно оптимизировать его с помощью линейных проходов (пассов), находя нейтральные комбинации инструкций. Я добавил оптимизацию, заменяющую последовательные ```push``` и ```pop``` с одинаковыми аргументами на 2 инструкции ```nop``` (которые в случае IR не делают ничего и занимают 0 байт в любой кодировке).
+The [stdlib.s](std_lib/stdlib.s) file contains implementations of instructions such as ```in```, ```out```, and ```hlt```.
 
-### Создание ELF-файла
+#### IR Optimization
 
-Здесь мне пришлось потратить достаточное время на изучение формата ELF-файла.  
-Источники: [skyfree](http://www.skyfree.org/linux/references/ELF_Format.pdf), [tchajed](https://github.com/tchajed/minimal-elf), [scratchpad](https://scratchpad.avikdas.com/elf-explanation/elf-explanation.html), [stackoverflow](https://stackoverflow.com/questions/76345246/trying-to-generate-the-smallest-elf-file-possible-in-c)
+Once the IR is fully generated, it can be optimized using linear passes that detect redundant instruction sequences.
 
-Если кратко, то минимальный ELF-файл должен состоять из нескольких частей:
-1. ELF header (содержит общую информацию о файле)
-2. Program header (содержит информацию о конкретной области в программе, это может быть как код, так и данные)
-3. Код или данные
+One implemented optimization replaces consecutive ```push``` and ```pop``` instructions with matching arguments by two ```nop``` instructions.
+
+In the IR representation, these ```nop``` instructions do not generate any machine code and therefore occupy zero bytes in the final executable.
+
+### ELF Generation
+
+Generating an ELF executable required implementing the necessary parts of the ELF file format.
+
+References used during implementation:
+
+* [skyfree](http://www.skyfree.org/linux/references/ELF_Format.pdf)
+* [tchajed](https://github.com/tchajed/minimal-elf)
+* [scratchpad](https://scratchpad.avikdas.com/elf-explanation/elf-explanation.html)
+* [stackoverflow](https://stackoverflow.com/questions/76345246/trying-to-generate-the-smallest-elf-file-possible-in-c)
+
+A minimal ELF executable consists of several parts:
+
+1. ELF header, which contains general information about the executable.
+2. Program headers, which describe regions of the program such as code and data.
+3. Code and data themselves.
 
 <img src="readme_assets/pics/elf.PNG" width="400" alt="Centered Image">
 
-#### Заголовки
+#### Headers
 
-Создать нужные заголовки можно благодаря структурам ```Elf64_Phdr``` и ```Elf64_Ehdr``` из файла ```elf.h```, предоставленного стандартной библиотекой.
+The required headers can be generated using the ```Elf64_Phdr``` and ```Elf64_Ehdr``` structures provided by ```elf.h```.
 
-Мы уже добавили функцию генерации ```.s``` nasm файла. Тогда мы можем его скомпилировать и узнать характеристики с помощью команды ```readelf --all [имя файла]```. Заполним ELF header нужными данными, но тогда остается разобраться с program header'ами.
+Since the compiler can already generate a NASM ```.s``` file, this file can be assembled separately and inspected using:
+
+```bash
+readelf --all <filename>
+```
+
+This makes it possible to determine the necessary ELF header fields and compare the manually generated executable with a valid ELF file.
 
 ![](readme_assets/pics/proghead.jpg)
 
-Первый заголовок остается неизменным при любом коде программы, его ```memsiz``` зависит от количества program header`ов, которые не меняются в количестве.  
-Второй заголовок отвечает за код стандартной библиотеки + код самой программы. Его ```memsiz``` равен сумме байтов, занятых стандартной библиотекой и байтов, занятых кодом самой программы.  
-Третий заголовок отвечает за переменные, относящиеся к стандартной библиотеке. Рзамер блока здесь постоянный, а начинаются данные после всего кода, на адресе кратном 0x1000.
+The first program header remains unchanged regardless of the source program. Its ```memsiz``` depends on the number of program headers, which is fixed.
 
-#### Стандартная библиотека
+The second program header describes the code of the standard library together with the generated program code. Its ```memsiz``` is equal to the total number of bytes occupied by the standard library code and the generated code.
 
-После создания заголовков нужно переместить в бинарный файл стандартную библиотеку. Заранее с помощью nasm скомпилируем библиотеку и получим бинарный файл. Уберем из этого файла описанный ранее заголовок, тогда останется код библиотеки и переменные, относящиеся к ней. Для того, чтобы в финальном бинарном файле все заработало, мы должны их вписать в порядке: код библиотеки, затем код самой программы, в самом конце переменные из библиотеки.
+The third program header describes the variables used by the standard library. The size of this region is constant, while the data starts after the code section at an address aligned to ```0x1000```.
+
+#### Standard Library
+
+After generating the ELF headers, the standard library must be included in the binary.
+
+The library is assembled with NASM in advance to produce a binary file. The headers described above are removed from this file, leaving only the standard library code and its data.
+
+The final executable is then constructed in the following order:
+
+1. Standard library code.
+2. Generated program code.
+3. Standard library data.
 
 <img src="readme_assets/pics/elf2.PNG" width="400" alt="Centered Image">
 
 > [!WARNING]
-> Важно не забыть сохранить смещения, заданные нами в program header'ах. Пустое пространство стоит заполнить нулями, пока мы не дойдем до нужного нам смещения.
+> The offsets specified in the program headers must be preserved. Any unused space between sections must be filled with zero bytes until the required offset is reached.
 
-## Сравнение скорости
+## Performance Comparison
 
-Таким образом мы создали исполняемый ELF-файл. Проверим насколько это ускорит нашу программу. Для этого напишем код, считающий факториал числа 5 $10^6$ раз. Замерять время будем три раза с помощью команды ```time файл```. Сравнивать будем с прошлой версией, где мы [эмулировали код на процессоре](https://github.com/worthlane/57Lang). 
+The compiler now produces a native executable ELF file.
 
-|        | $t_1$, с | $t_2$, с | $t_3$, с | $t_{avg}$, с |
+To measure the performance difference, a program calculating the factorial of a number was executed $5 \cdot 10^6$ times.
+
+Execution time was measured three times using the ```time``` command.
+
+The results were compared with the previous implementation, where the program code was lowered into my own assembler code and executed using the custom [SPU emulator]([https://github.com/worthlane/57Lang](https://github.com/worthlane/SPU_emulator/tree/main)).
+
+|        | $t_1$, s | $t_2$, s | $t_3$, s | $t_{avg}$, s |
 |:------:|:--------:|:--------:|:--------:|:------------:|
-| SPU    | $5.450$  | $5.020$  | $5.025$  | $5.2 \pm 0.3$  |
-| x86-64 | $0.098$  | $0.096$  | $0.103$  | $0.100 \pm 0.005$ | 
+| SPU    | $5.450$  | $5.020$  | $5.025$  | $5.2 \pm 0.3$ |
+| x86-64 | $0.098$  | $0.096$  | $0.103$  | $0.100 \pm 0.005$ |
 
-Получаем, что с данным преобразованием наша программа ускорилась в $50 \pm 5$ раз!! Гоооооол!
+The native x86-64 version is approximately $50 \pm 5$ times faster than the previous emulator-based implementation.
 
-<img src="readme_assets/pics/goal.jpg" width="400" alt="Centered Image">
-
-Я считаю, что это невероятный результат. Помимо этого мы еще и выиграли в переносимости языка. Ни у кого кроме меня не скачан мой эмулятор процессора, в связи с чем прошлую версию языка просто нельзя было исполнить, не скачивая SPU. Теперь же мой язык можно использовать на любом компьютере операционной системы Linux.
-
-✅
-
-В ближайшем будущем будет добавлена кросс компиляция с языками ([d3clane](https://github.com/d3clane/ProgrammingLanguage) и [metaironia](https://github.com/metaironia/MyProgrammingLanguage)). В моем языке AST-дерево имеет аналогичный стандарт, за исключением пары моментов, над исправлением которых я работаю прямо сейчас. (Корректное преобразование числовых имен функций в буквенные, подходящие для других языков).
-
-
-
-
+In addition to the performance improvement, this also improves portability. The previous version required the custom SPU emulator to execute 57Lang programs, while the new compiler produces standalone x86-64 ELF executables.
