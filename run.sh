@@ -3,7 +3,7 @@ if [ "$#" -lt 1 ]; then
     exit 1
 fi
 
-filename=$(basename -- "$1")
+filename="$1"
 extension="${filename##*.}"
 filename="${filename%.*}"
 
@@ -15,4 +15,4 @@ shift
 ./mid "$@"
 ./back "$@"
 
-chmod +x $filename
+chmod +x "$filename"
