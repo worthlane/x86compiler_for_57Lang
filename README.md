@@ -414,7 +414,7 @@ To measure the performance difference, a program calculating the factorial of a 
 
 Execution time was measured three times using the ```time``` command.
 
-The results were compared with the previous implementation, where the program was executed using the custom [SPU emulator](https://github.com/worthlane/57Lang).
+The results were compared with the previous implementation, where the program code was lowered into my own assembler code and executed using the custom [SPU emulator]([https://github.com/worthlane/57Lang](https://github.com/worthlane/SPU_emulator/tree/main)).
 
 |        | $t_1$, s | $t_2$, s | $t_3$, s | $t_{avg}$, s |
 |:------:|:--------:|:--------:|:--------:|:------------:|
